@@ -5,14 +5,14 @@ public class ChangeListener {
 
     public static void logChange(String ip, boolean state) {
         if (state) {
-            System.out.println("New host " + ip + " detected (" +
-                DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy").format(LocalDateTime.now()) + 
-            ")");
+            System.out.println("New host " + ip + " detected (" + getCurrentDate() + ")");
         }
         else {
-            System.out.println("Host " + ip + " is no longer reachable (" +
-                DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy").format(LocalDateTime.now()) + 
-            ")");
+            System.out.println("Host " + ip + " is no longer reachable (" + getCurrentDate() + ")");
         }
+    }
+
+    private static String getCurrentDate() {
+        return DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy").format(LocalDateTime.now());
     }
 }

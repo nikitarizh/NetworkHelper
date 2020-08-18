@@ -11,12 +11,8 @@ public class Main {
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                nh.checkHosts("192.168.100", 5000);
-                try {
-                    Thread.currentThread().join(9999);
-                }
-                catch (InterruptedException e) {
-
+                if (!nh.userScan) {
+                    nh.checkHosts("192.168.100", 5000);
                 }
             }
         }, (long) 0, (long) 10000);

@@ -1,19 +1,28 @@
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 class NetworkHelper {
 
     private Vector<String> ips;
 
+    public boolean isScanning = false;
+    public boolean userScan = false;
+
     public NetworkHelper() {
         ips = new Vector<String>();
     }
 
-    public void checkHosts(String subnet, int timeout) {
-        
+    public boolean checkHosts(String subnet, int timeout) {
+        isScanning = true;
+
+        ExecutorService es = Executors.newCachedThreadPool();
+
         for (int i = 1; i < 255; i++) {
             String host = subnet + "." + i;
-            new Thread(new Runnable() {
+            es.execute(new Runnable() {
                 public void run() {
                     try {
                         if (InetAddress.getByName(host).isReachable(timeout)) {
@@ -28,13 +37,25 @@ class NetworkHelper {
                                 ips.remove(host);
                             }
                         }
-                    } catch (Exception e) {
+                    } 
+                    catch (Exception e) {
                         // System.out.println(e.getMessage());
                     }
                 }
-            }).start();
-            
+            });
         }
+
+        es.shutdown();
+        boolean finished = false;
+        try {
+            finished = es.awaitTermination(10, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException e) {}
+
+        userScan = false;
+        isScanning = false;
+        
+        return finished;
     }
 
     public void checkHost(String ip, int timeout) {
