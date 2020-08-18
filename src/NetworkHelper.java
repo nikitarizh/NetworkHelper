@@ -18,13 +18,13 @@ class NetworkHelper {
                     try {
                         if (InetAddress.getByName(host).isReachable(timeout)) {
                             if (!ips.contains(host)) {
-                                System.out.println("New host " + host + " detected");
+                                ChangeListener.logChange(host, true);
                                 ips.add(host);
                             }
                         }
                         else {
                             if (ips.contains(host)) {
-                                System.out.println("Host " + host + " is no longer reachable");
+                                ChangeListener.logChange(host, false);
                                 ips.remove(host);
                             }
                         }
