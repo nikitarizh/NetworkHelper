@@ -1,37 +1,9 @@
-import java.io.IOException;
 import java.net.*;
 import java.util.*;
 
-import java.time.format.DateTimeFormatter;
-import java.time.LocalDateTime;
-
 class NetworkHelper {
+
     private Vector<String> ips;
-    public static void main(String[] args) throws IOException {
-        System.setProperty("java.net.preferIPv4Stack" , "true");
-        
-        final NetworkHelper nh = new NetworkHelper();
-
-        final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");  
-        LocalDateTime now = LocalDateTime.now();  
-        System.out.println(dtf.format(now));  
-
-        new Timer().scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                System.out.println("\n------SCAN " + dtf.format(LocalDateTime.now()) + "------\n");
-                nh.checkHosts("192.168.100", 5000);
-                try {
-                    Thread.currentThread().join(9999);
-                }
-                catch (InterruptedException e) {
-
-                }
-                System.out.println("\n------SCAN FINISHED------\n");
-            }
-        }, (long) 0, (long) 10000);
-
-    }
 
     public NetworkHelper() {
         ips = new Vector<String>();
@@ -66,6 +38,7 @@ class NetworkHelper {
     }
 
     public static void checkHost(String ip, int timeout) {
+        System.out.println("Trying to ping " + ip);
         try {
             if (InetAddress.getByName(ip).isReachable(timeout)) {
                 System.out.println("Host " + ip + " is reachable");
@@ -77,9 +50,5 @@ class NetworkHelper {
         catch (Exception e) {
             System.out.println(e.getMessage());
         }
-    }
-
-    public static String getIP() {
-        return null;
     }
 }

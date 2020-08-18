@@ -9,10 +9,14 @@ Java
 ## How to use?
 1. Compile NetworkHelper.java to a class
 ```
-javac -d ./build NetworkHelper.java
+javac -d ./bin ./src/*.java
 ```
-2. Make a jar file out of the NetworkHelper.class
+2. cd to a folder with compiled classses
 ```
-jar -cfe ./build/NetworkHelper.jar NetworkHelper ./build/NetworkHelper.class
+cd bin
 ```
-3. Open NetworkHelper.jar using your terminal
+3. Make a jar file
+```
+jar -cfe NetworkHelper.jar Main *.class
+```
+4. Open NetworkHelper.jar using your terminal
