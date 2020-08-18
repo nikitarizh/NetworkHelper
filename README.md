@@ -1,6 +1,6 @@
 # NetworkHelper
 ## What is it?
-A tool to make network administrating easier  
+A tool to make network administrating easier <br />
 But actually I'm just learning Java by myself, so this thing will be kinda useless for you
 ## What does it do?
 - Tells you about new connections to your network
