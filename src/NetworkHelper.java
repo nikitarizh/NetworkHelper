@@ -37,7 +37,7 @@ class NetworkHelper {
         }
     }
 
-    public static void checkHost(String ip, int timeout) {
+    public void checkHost(String ip, int timeout) {
         System.out.println("Trying to ping " + ip);
         try {
             if (InetAddress.getByName(ip).isReachable(timeout)) {
@@ -50,5 +50,13 @@ class NetworkHelper {
         catch (Exception e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public void printHosts() {
+        System.out.println("\n------ONLINE HOSTS:------\n");
+        for (String string : ips) {
+            System.out.println(string);
+        }
+        System.out.println("\n-----------***-----------\n");
     }
 }

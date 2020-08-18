@@ -3,9 +3,10 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        System.setProperty("java.net.preferIPv4Stack" , "true");
-        
+        System.setProperty("java.net.preferIPv4Stack" , "true");        
         final NetworkHelper nh = new NetworkHelper();
+        
+        new InputListener(nh);
 
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
