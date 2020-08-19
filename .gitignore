@@ -5,5 +5,5 @@
 .AppleDouble
 .LSOverride
 
-build.sh
+build*.sh
 launch*.sh

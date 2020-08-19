@@ -1,20 +1,145 @@
 package server;
 
+import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 class NetworkHelperServer {
 
-    private Vector<String> ips;
+    private TreeSet<String> ips;
 
     public boolean isScanning = false;
     public boolean userScan = false;
 
-    public NetworkHelperServer() {
-        ips = new Vector<String>();
+    public NetworkHelperServer(int port) {
+        ips = new TreeSet<String>();
+        
+        new ConnectionHandler(port).start();
+        
+    }
+
+    private class ConnectionHandler extends Thread {
+        private int port;
+
+        public ConnectionHandler(int p) {
+            port = p;
+        }
+
+        public void run() {
+            ServerSocket ss = null;
+            Socket s = null;
+            try {
+                ss = new ServerSocket(port);
+            }
+            catch (Exception e) {
+                System.out.println("Server socket creation failed");
+                System.exit(0);
+            }
+            
+            while (true) {
+                try {
+                    s = ss.accept();
+                }
+                catch (Exception e) {}
+
+                new ServerThread(s).start();
+            }
+        }
+    }
+
+    private class ServerThread extends Thread {
+        private Socket socket;
+
+        public ServerThread(Socket clientSocket) {
+            this.socket = clientSocket;
+        }
+
+        public void run() {
+            System.out.println("thread running");
+
+            final DataInputStream din = getDIN();
+            final DataOutputStream dout = getDOUT();
+            final Scanner scanner = new Scanner(System.in);
+
+            try {
+                // System.out.println("Ip " + getClientIp() + " connected from cab " + din.readAllBytes());
+                System.out.println("Ip " + getClientIp() + " connected");
+            }
+            catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+
+            System.out.println("setting executors");
+
+            ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
+            executor.scheduleAtFixedRate(() -> {
+                System.out.println("reading");
+                int inp;
+                String out = "";
+                try {
+                    System.out.println("reading utf");
+                    if (din.available() > 0) {
+                        inp = din.readInt();
+                        System.out.println("read");
+                        if (inp == 1) {
+                            for (String ip : ips) {
+                                out += ip + ";";
+                            }
+                            dout.writeUTF(out);
+                            dout.flush();
+                        }
+                        else if (inp == 2) {
+                            dout.writeUTF(out);
+                            dout.flush();
+                        }
+                        else if (inp == 0) {
+                            System.out.println("Host " + getClientIp() + " disconnected");
+                            scanner.close();
+                            socket.close();
+                            return;
+                        }
+                        else {
+                            dout.writeUTF("Incorrect command");
+                        }
+                    }
+                }
+                catch (IOException e) {
+                    System.out.println(e.getMessage());
+                };
+            }, 0, 500, TimeUnit.MILLISECONDS);
+        }
+
+        private String getClientIp() {
+            return ((Inet4Address)
+                        ((InetSocketAddress)
+                            socket.getRemoteSocketAddress())
+                        .getAddress())
+                    .toString();
+        }
+
+        private DataInputStream getDIN() {
+            try {
+                return new DataInputStream(socket.getInputStream());
+            }
+            catch (Exception e) {
+                System.out.println("Creating DIN failed");
+                System.exit(0);
+            }
+            return null;
+        }
+
+        private DataOutputStream getDOUT() {
+            try {
+                return new DataOutputStream(socket.getOutputStream());
+            }
+            catch (Exception e) {
+                System.out.println("Creating DOUT failed");
+                System.exit(0);
+            }
+            return null;
+        }
+
     }
 
     public boolean checkHosts(String subnet, int timeout) {
