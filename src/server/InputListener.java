@@ -1,9 +1,11 @@
+package server;
+
 import java.util.Scanner;
 
 public class InputListener {
     Scanner in = new Scanner(System.in);
 
-    public InputListener(NetworkHelper nh) {
+    public InputListener(NetworkHelperServer nh) {
         printInfo();
         new Thread(new Runnable() {
             public void run() {

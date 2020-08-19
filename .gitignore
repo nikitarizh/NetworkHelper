@@ -6,4 +6,4 @@
 .LSOverride
 
 build.sh
-launch.sh
+launch*.sh

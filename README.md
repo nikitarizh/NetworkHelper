@@ -9,16 +9,38 @@ But actually I'm just learning Java by myself, so this thing will be kinda usele
 ## What is it built with?
 Java
 ## How to use?
-1. Compile NetworkHelper.java to a class
-```
-javac -d ./bin ./src/*.java
-```
-2. cd to a folder with compiled classses
-```
-cd bin
-```
-3. Make a jar file
-```
-jar -cfe NetworkHelper.jar Main *.class
-```
-4. Open NetworkHelper.jar using your terminal
+**Make sure you are executing these commands from project root**
+- Server side
+ 1. Compile server classes
+ ```
+ javac -d ./bin ./src/server/*.java
+ ```
+ 2. cd to a folder with compiled classses
+ ```
+ cd bin
+ ```
+ 3. Make a jar file
+ ```
+ jar -cfe NetworkHelperServer.jar server.Main server/*.class
+ ```
+ 4. Open NetworkHelperServer.jar using your terminal
+ ```
+ java -jar NetworkHelperServer.jar
+ ```
+- Client side
+ 1. Compile client classes
+ ```
+ javac -d ./bin ./src/client/*.java
+ ```
+ 2. cd to a folder with compiled classses
+ ```
+ cd bin
+ ```
+ 3. Make a jar file
+ ```
+ jar -cfe NetworkHelperClient.jar client.Main client/*.class
+ ```
+ 4. Open NetworkHelperClient.jar using your terminal
+ ```
+  java -jar NetworkHelperClient.jar
+ ```

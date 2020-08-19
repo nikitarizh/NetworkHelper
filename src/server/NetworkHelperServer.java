@@ -1,17 +1,19 @@
+package server;
+
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-class NetworkHelper {
+class NetworkHelperServer {
 
     private Vector<String> ips;
 
     public boolean isScanning = false;
     public boolean userScan = false;
 
-    public NetworkHelper() {
+    public NetworkHelperServer() {
         ips = new Vector<String>();
     }
 
