@@ -7,6 +7,7 @@ import java.util.concurrent.*;
 
 class NetworkHelperServer {
 
+    private String serverIp;
     private TreeSet<String> ips;
 
     public boolean isScanning = false;
@@ -14,6 +15,10 @@ class NetworkHelperServer {
 
     public NetworkHelperServer(int port) {
         ips = new TreeSet<String>();
+        try {
+            serverIp = InetAddress.getLocalHost().getHostAddress();
+        }
+        catch (Exception e) {}
         
         new ConnectionHandler(port).start();
         
@@ -56,7 +61,6 @@ class NetworkHelperServer {
         }
 
         public void run() {
-            System.out.println("thread running");
 
             final DataInputStream din = getDIN();
             final DataOutputStream dout = getDOUT();
@@ -70,18 +74,13 @@ class NetworkHelperServer {
                 System.out.println(e.getMessage());
             }
 
-            System.out.println("setting executors");
-
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
             executor.scheduleAtFixedRate(() -> {
-                System.out.println("reading");
                 int inp;
                 String out = "";
                 try {
-                    System.out.println("reading utf");
                     if (din.available() > 0) {
                         inp = din.readInt();
-                        System.out.println("read");
                         if (inp == 1) {
                             for (String ip : ips) {
                                 out += ip + ";";
@@ -201,9 +200,16 @@ class NetworkHelperServer {
     }
 
     public void printHosts() {
+        Object[] ipsArray = ips.toArray();
+        for (int i = 0; i < ipsArray.length; i++) {
+            if (ipsArray[i].equals(serverIp)) {
+                ipsArray[i] += " (SERVER)";
+            }
+        }
+
         System.out.println("\n------ONLINE HOSTS:------\n");
-        for (String string : ips) {
-            System.out.println(string);
+        for (Object ip : ipsArray) {
+            System.out.println(ip);
         }
         System.out.println("\n-----------***-----------\n");
     }

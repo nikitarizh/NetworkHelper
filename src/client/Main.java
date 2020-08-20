@@ -32,7 +32,6 @@ public class Main {
             cab = in.next();
         }
         catch (Exception e) {}
-        in.close();
 
         NetworkHelperClient nhc = createClient(ip, port, cab);
         if (nhc == null) {

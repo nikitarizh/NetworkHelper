@@ -8,89 +8,38 @@ import java.util.concurrent.*;
 
 public class NetworkHelperClient {
 
-    public NetworkHelperClient(String serverIp, int port, String cabinet) throws Exception {
-        new ClientThread(serverIp, port, cabinet).start();
+    private String serverIp;
+    private int port;
+    private String cabinet;
+    private Socket socket;
+    private DataInputStream din;
+    private DataOutputStream dout;
+
+    public NetworkHelperClient(String ip, int p, String cab) throws Exception {
+        serverIp = ip;
+        port = p;
+        cabinet = cab;
+        new ClientThread().start();
+        new RequestListener().start();
+        new ResponseListener();
+
+        // dout.writeUTF("__SYSTEM__-cab-" + cabinet);
+        // dout.flush();
     }
 
     private class ClientThread extends Thread {
 
-        private String serverIp;
-        private int port;
-        private String cabinet;
-        private Socket socket;
-
-        public ClientThread(String ip, int p, String cab) {
-            serverIp = ip;
-            port = p;
-            cabinet = cab;
-        }
-
         public void run() {
             try {
-                init();
+                socket = new Socket(serverIp, port);
+                din = getDIN();
+                dout = getDOUT();
             }
             catch (Exception e) {
                 System.out.println("Error creating ClientThread");
                 System.out.println(e.getMessage());
                 System.exit(0);
             }
-        }
-
-        public void init() throws Exception {
-            socket = new Socket(serverIp, port);
-
-            final DataInputStream din = getDIN();
-            final DataOutputStream dout = getDOUT();
-            final Scanner scanner = new Scanner(System.in);
-
-            // dout.writeBytes("__:system:__-cab-" + cabinet);
-            // dout.flush();
-
-            ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
-            executor.scheduleAtFixedRate(() -> {
-                int s1 = -1;
-                String s2 = "";
-                try {
-                    s1 = scanner.nextInt();
-                    if (s1 == 0) {
-                        System.exit(0);
-                    }
-    
-                    dout.writeInt(s1);
-                    dout.flush();
-                    s2 = din.readUTF();
-    
-                    if (s1 == 1) {
-                        String[] ips = s2.split(";");
-    
-                        String currIp = InetAddress.getLocalHost().getHostAddress();
-                        for (int i = 0; i < ips.length; i++) {
-                            if (ips[i].equals(currIp)) {
-                                ips[i] += " (THIS MACHINE)";
-                            }
-                            else if (ips[i].equals(serverIp)) {
-                                ips[i] += " (SERVER)";
-                            }
-                        }
-    
-                        System.out.println("\n------ONLINE HOSTS:------\n");
-    
-                        for (int i = 0; i < ips.length; i++) {
-                            System.out.println(ips[i]);
-                        }
-                        System.out.println("\n-----------***-----------\n");
-                    }
-                    else {
-                        System.out.println("SERVER: " + s2);
-                    }
-                }
-                catch (Exception e) {
-                    System.out.println("Error: " + e.getCause());
-                };
-
-                s2 = "";
-
-            }, 0, 500, TimeUnit.MILLISECONDS);
         }
 
         private DataInputStream getDIN() {
@@ -113,6 +62,79 @@ public class NetworkHelperClient {
                 System.exit(0);
             }
             return null;
+        }
+    }
+
+
+    private class ResponseListener {
+        public ResponseListener() {
+            ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
+            executor.scheduleAtFixedRate(() -> {
+                try {
+                    if (din.available() > 0) {
+                        String res = din.readUTF();
+
+                        if (res.charAt(0) == '1') {
+                            res.substring(1);
+                            String[] ips = res.split(";");
+
+                            String currIp = InetAddress.getLocalHost().getHostAddress();
+                            for (int i = 0; i < ips.length; i++) {
+                                if (ips[i].equals(currIp)) {
+                                    ips[i] += " (THIS MACHINE)";
+                                }
+                                else if (ips[i].equals(serverIp)) {
+                                    ips[i] += " (SERVER)";
+                                }
+                            }
+
+                            System.out.println("\n------ONLINE HOSTS:------\n");
+
+                            for (int i = 0; i < ips.length; i++) {
+                                System.out.println(ips[i]);
+                            }
+                            System.out.println("\n-----------***-----------\n");
+                        }
+                        else {
+                            System.out.println("SERVER: " + res);
+                        }
+                    }
+                }
+                catch (Exception e) {};
+
+            }, 0, 500, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private class RequestListener extends Thread {
+        public void run() {
+            Scanner in = new Scanner(System.in);
+            int req = in.nextInt();
+            while (req != 0) {
+                switch (req) {
+                    case 1: 
+                        getOnlineHosts();
+                        req = in.nextInt();
+                        break;
+                    default:
+                        System.out.println("Incorrect command");
+                        req = in.nextInt();
+                        break;
+                }
+            }
+            in.close();
+            System.exit(0);
+        }
+
+        private void getOnlineHosts() {
+            try {
+                dout.writeInt(1);
+                dout.flush();
+            }
+            catch (Exception e) {
+                System.out.println("Sending request failed");
+            }
+
         }
     }
     
