@@ -41,6 +41,8 @@ public class Main {
         else {
             System.out.println("\nConnection successful\n");
         }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> nhc.closeConnection()));
     }
 
     private static NetworkHelperClient createClient(String ip, int port, String cab) {

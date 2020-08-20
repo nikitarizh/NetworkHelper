@@ -15,16 +15,26 @@ public class NetworkHelperClient {
     private DataInputStream din;
     private DataOutputStream dout;
 
+    private RequestListener requestListener;
+
     public NetworkHelperClient(String ip, int p, String cab) throws Exception {
         serverIp = ip;
         port = p;
         cabinet = cab;
+
         new ClientThread().start();
-        new RequestListener().start();
+
+        requestListener = new RequestListener();
+        requestListener.start();
+
         new ResponseListener();
 
         // dout.writeUTF("__SYSTEM__-cab-" + cabinet);
         // dout.flush();
+    }
+
+    public void closeConnection() {
+        requestListener.closeConnection();
     }
 
     private class ClientThread extends Thread {
@@ -116,6 +126,9 @@ public class NetworkHelperClient {
                         getOnlineHosts();
                         req = in.nextInt();
                         break;
+                    case 0:
+                        closeConnection();
+                        break;
                     default:
                         System.out.println("Incorrect command");
                         req = in.nextInt();
@@ -135,6 +148,16 @@ public class NetworkHelperClient {
                 System.out.println("Sending request failed");
             }
 
+        }
+
+        public void closeConnection() {
+            try {
+                dout.writeInt(0);
+                dout.flush();
+            }
+            catch (Exception e) {
+                System.out.println("Sending request failed");
+            }
         }
     }
     
