@@ -3,7 +3,7 @@ package server;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 
-public class ChangeListener {
+public class Logger {
 
     public static void logChange(String ip, boolean state) {
         if (state) {
@@ -12,6 +12,14 @@ public class ChangeListener {
         else {
             System.out.println("Host " + ip + " is no longer reachable (" + getCurrentDate() + ")");
         }
+    }
+
+    public static void log(String message) {
+        System.out.println(message + " (" + getCurrentDate() + ")");
+    }
+
+    public static void report(String message) {
+        System.out.println(message);
     }
 
     private static String getCurrentDate() {

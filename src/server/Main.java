@@ -2,18 +2,17 @@ package server;
 
 import java.io.IOException;
 import java.util.*;
-import java.net.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
         System.setProperty("java.net.preferIPv4Stack" , "true");   
         Scanner in = new Scanner(System.in);
-        String subnetInput = "";
+        String subnet = "";
         int port = 0;
 
         System.out.println("\nEnter subnet: ");
         try {
-            subnetInput = in.next();
+            subnet = in.next();
         }
         catch (Exception e) {
             // Set default subnet
@@ -26,18 +25,16 @@ public class Main {
         catch (Exception e) {
             // Set default port
         }
-
         
-        final NetworkHelperServer nhs = new NetworkHelperServer(port);
+        final NetworkHelperServer nhs = new NetworkHelperServer(subnet, port);
         
-        new InputListener(nhs);
-        final String subnet = subnetInput;
+        new InputHandler(nhs);
 
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 if (!nhs.userScan) {
-                    nhs.checkHosts(subnet, 5000);
+                    nhs.checkHosts(5000);
                 }
             }
         }, (long) 0, (long) 10000);

@@ -139,13 +139,26 @@ public class NetworkHelperClient {
             System.exit(0);
         }
 
+        private void reconnect() {
+            try {
+                System.out.println("Trying to reconnect...");
+                socket = new Socket(serverIp, port);
+                System.out.println("Connection restored");
+            }
+            catch(Exception e1) {
+                System.out.println("Reconnection to server failed");
+                System.exit(0);
+            }
+        }
+
         private void getOnlineHosts() {
             try {
                 dout.writeInt(1);
                 dout.flush();
             }
             catch (Exception e) {
-                System.out.println("Sending request failed");
+                System.out.println("Connection lost");
+                reconnect();
             }
 
         }
@@ -156,7 +169,8 @@ public class NetworkHelperClient {
                 dout.flush();
             }
             catch (Exception e) {
-                System.out.println("Sending request failed");
+                System.out.println("Connection lost");
+                reconnect();
             }
         }
     }

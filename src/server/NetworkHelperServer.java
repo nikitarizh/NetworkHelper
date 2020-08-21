@@ -7,13 +7,15 @@ import java.util.concurrent.*;
 
 class NetworkHelperServer {
 
+    private String subnet;
     private String serverIp;
     private TreeSet<String> ips;
 
     public boolean isScanning = false;
     public boolean userScan = false;
 
-    public NetworkHelperServer(int port) {
+    public NetworkHelperServer(String sub, int port) {
+        subnet = sub;
         ips = new TreeSet<String>();
         try {
             serverIp = InetAddress.getLocalHost().getHostAddress();
@@ -141,7 +143,7 @@ class NetworkHelperServer {
 
     }
 
-    public boolean checkHosts(String subnet, int timeout) {
+    public boolean checkHosts(int timeout) {
         isScanning = true;
 
         ExecutorService es = Executors.newCachedThreadPool();
@@ -153,13 +155,13 @@ class NetworkHelperServer {
                     try {
                         if (InetAddress.getByName(host).isReachable(timeout)) {
                             if (!ips.contains(host)) {
-                                ChangeListener.logChange(host, true);
+                                Logger.logChange(host, true);
                                 ips.add(host);
                             }
                         }
                         else {
                             if (ips.contains(host)) {
-                                ChangeListener.logChange(host, false);
+                                Logger.logChange(host, false);
                                 ips.remove(host);
                             }
                         }
@@ -199,18 +201,23 @@ class NetworkHelperServer {
         }
     }
 
-    public void printHosts() {
-        Object[] ipsArray = ips.toArray();
-        for (int i = 0; i < ipsArray.length; i++) {
-            if (ipsArray[i].equals(serverIp)) {
-                ipsArray[i] += " (SERVER)";
-            }
+    public TreeSet<String> getHosts() {
+        if (!isScanning) {
+            Logger.log("Initiating scan... (getHosts)");
+            checkHosts(5000);
+            Logger.log("Scan finished (getHosts)");
         }
+        else {
+            Logger.report("System is currently performing a scan, waiting... (getHosts)");
+            try {
+                Thread.sleep(5100);
+            } catch (Exception e) {}
+            return ips;
+        }
+        return null;
+    }
 
-        System.out.println("\n------ONLINE HOSTS:------\n");
-        for (Object ip : ipsArray) {
-            System.out.println(ip);
-        }
-        System.out.println("\n-----------***-----------\n");
+    public String getIp() {
+        return serverIp;
     }
 }
