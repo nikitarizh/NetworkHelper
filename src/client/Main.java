@@ -11,7 +11,7 @@ public class Main {
 
         String ip = "";
         int port = 0;
-        String cab = "";
+        String location = "";
 
         System.out.println("\nEnter server address: ");
         try {
@@ -27,13 +27,13 @@ public class Main {
         catch (Exception e) {
             // Set default port
         }
-        System.out.println("\nEnter cabinet:");
+        System.out.println("\nEnter location:");
         try {
-            cab = in.next();
+            location = in.next();
         }
         catch (Exception e) {}
 
-        NetworkHelperClient nhc = createClient(ip, port, cab);
+        NetworkHelperClient nhc = createClient(ip, port, location);
         if (nhc == null) {
             System.out.println("Client creation failed");
             System.exit(0);
@@ -45,7 +45,7 @@ public class Main {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> nhc.closeConnection()));
     }
 
-    private static NetworkHelperClient createClient(String ip, int port, String cab) {
+    private static NetworkHelperClient createClient(String ip, int port, String location) {
 
         try {
             if (!InetAddress.getByName(ip).isReachable(1000)) {
@@ -55,7 +55,7 @@ public class Main {
                 }
             }
 
-            return new NetworkHelperClient(ip, port, cab);
+            return new NetworkHelperClient(ip, port, location);
         }
         catch (Exception e) {
             System.out.println(e.getMessage());

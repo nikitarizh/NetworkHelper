@@ -10,17 +10,17 @@ public class NetworkHelperClient {
 
     private String serverIp;
     private int port;
-    private String cabinet;
+    private String location;
     private Socket socket;
     private DataInputStream din;
     private DataOutputStream dout;
 
     private RequestListener requestListener;
 
-    public NetworkHelperClient(String ip, int p, String cab) throws Exception {
+    public NetworkHelperClient(String ip, int p, String loc) throws Exception {
         serverIp = ip;
         port = p;
-        cabinet = cab;
+        location = loc;
 
         new ClientThread().start();
 
@@ -29,8 +29,6 @@ public class NetworkHelperClient {
 
         new ResponseListener();
 
-        // dout.writeUTF("__SYSTEM__-cab-" + cabinet);
-        // dout.flush();
     }
 
     public void closeConnection() {
@@ -44,6 +42,10 @@ public class NetworkHelperClient {
                 socket = new Socket(serverIp, port);
                 din = getDIN();
                 dout = getDOUT();
+
+
+                dout.writeUTF("__SYSTEM__-location-" + location);
+                dout.flush();
             }
             catch (Exception e) {
                 System.out.println("Error creating ClientThread");
@@ -83,25 +85,24 @@ public class NetworkHelperClient {
                 try {
                     if (din.available() > 0) {
                         String res = din.readUTF();
-
+                        System.out.println(res);
                         if (res.charAt(0) == '1') {
-                            res.substring(1);
+                            res.substring(res.indexOf(';') + 1);
                             String[] ips = res.split(";");
 
                             String currIp = InetAddress.getLocalHost().getHostAddress();
                             for (int i = 0; i < ips.length; i++) {
-                                if (ips[i].equals(currIp)) {
+                                System.out.println(ips[i].split("-")[0] + " ---- " + currIp);
+                                if (ips[i].split("-")[0].equals(currIp)) {
                                     ips[i] += " (THIS MACHINE)";
-                                }
-                                else if (ips[i].equals(serverIp)) {
-                                    ips[i] += " (SERVER)";
                                 }
                             }
 
                             System.out.println("\n------ONLINE HOSTS:------\n");
 
                             for (int i = 0; i < ips.length; i++) {
-                                System.out.println(ips[i]);
+                                String[] ipWithLocation = ips[i].split("-");
+                                System.out.println(ipWithLocation[0] + " (" + ipWithLocation[1] + ")");
                             }
                             System.out.println("\n-----------***-----------\n");
                         }
@@ -162,6 +163,7 @@ public class NetworkHelperClient {
             }
 
         }
+
 
         public void closeConnection() {
             try {

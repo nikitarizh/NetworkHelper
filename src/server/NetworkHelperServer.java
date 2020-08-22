@@ -10,6 +10,10 @@ class NetworkHelperServer {
     private String subnet;
     private String serverIp;
     private TreeSet<String> ips;
+    private HashMap<String, String> ipByLocation;
+    private HashMap<String, String> locationByIp;
+
+    private Vector<Thread> threads;
 
     public boolean isScanning = false;
     public boolean userScan = false;
@@ -17,8 +21,13 @@ class NetworkHelperServer {
     public NetworkHelperServer(String sub, int port) {
         subnet = sub;
         ips = new TreeSet<String>();
+        ipByLocation = new HashMap<String, String>();
+        locationByIp = new HashMap<String, String>();
+        threads = new Vector<Thread>();
+        
         try {
             serverIp = InetAddress.getLocalHost().getHostAddress();
+            pushIpLocation(serverIp, "SERVER");
         }
         catch (Exception e) {}
         
@@ -59,21 +68,24 @@ class NetworkHelperServer {
         private Socket socket;
 
         public ServerThread(Socket clientSocket) {
-            this.socket = clientSocket;
+            socket = clientSocket;
         }
 
         public void run() {
 
             final DataInputStream din = getDIN();
             final DataOutputStream dout = getDOUT();
-            final Scanner scanner = new Scanner(System.in);
 
             try {
-                // System.out.println("Ip " + getClientIp() + " connected from cab " + din.readAllBytes());
-                System.out.println("Ip " + getClientIp() + " connected");
+                String location = din.readUTF().split("-")[2];
+                String ip = getClientIp();
+
+                pushIpLocation(ip, location);
+
+                Logger.log("Host " + ip + " (location: " + locationByIp.get(ip) + ") connected");
             }
             catch (Exception e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
 
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
@@ -83,30 +95,35 @@ class NetworkHelperServer {
                 try {
                     if (din.available() > 0) {
                         inp = din.readInt();
+                        out += Integer.toString(inp) + ';';
                         if (inp == 1) {
-                            for (String ip : ips) {
-                                out += ip + ";";
+                            TreeSet<String> outIps = getHosts();
+
+                            for (String ip : outIps) {
+                                out += ip + '-' + locationByIp.get(ip) + ';';
                             }
-                            dout.writeUTF(out);
-                            dout.flush();
                         }
                         else if (inp == 2) {
-                            dout.writeUTF(out);
-                            dout.flush();
+                            
                         }
                         else if (inp == 0) {
-                            System.out.println("Host " + getClientIp() + " disconnected");
-                            scanner.close();
+                            String ip = getClientIp();
+                            Logger.log("Host " + ip + " (location: " + locationByIp.get(ip) + ") disconnected");
+                            removeIpLocation(ip, locationByIp.get(ip));
                             socket.close();
+                            executor.shutdownNow();
                             return;
                         }
                         else {
-                            dout.writeUTF("Incorrect command");
+                            out = "Incorrect command";
                         }
+
+                        dout.writeUTF(out);
+                        dout.flush();
                     }
                 }
                 catch (IOException e) {
-                    System.out.println(e.getMessage());
+                    System.out.println("err: " + e.getMessage());
                 };
             }, 0, 500, TimeUnit.MILLISECONDS);
         }
@@ -212,12 +229,27 @@ class NetworkHelperServer {
             try {
                 Thread.sleep(5100);
             } catch (Exception e) {}
-            return ips;
         }
-        return null;
+        return ips;
+    }
+
+    private void pushIpLocation(String ip, String location) {
+        ipByLocation.put(location, ip);
+        locationByIp.put(ip, location);
+    }
+
+    private void removeIpLocation(String ip, String location) {
+        ipByLocation.remove(ip);
+        locationByIp.remove(location);
+    }
+
+    public HashMap<String, String> getLocationByIp() {
+        return locationByIp;
     }
 
     public String getIp() {
         return serverIp;
     }
+
+
 }
