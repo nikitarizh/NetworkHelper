@@ -13,6 +13,7 @@ public class Main {
         int port = 0;
         String location = "";
 
+        // enter parameters
         System.out.println("\nEnter server address: ");
         try {
             ip = in.next();
@@ -33,6 +34,7 @@ public class Main {
         }
         catch (Exception e) {}
 
+        // initialize client
         NetworkHelperClient nhc = createClient(ip, port, location);
         if (nhc == null) {
             System.out.println("Client creation failed");
@@ -42,12 +44,15 @@ public class Main {
             System.out.println("\nConnection successful\n");
         }
 
+        // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> nhc.closeConnection()));
     }
 
+    // returns new NetworkHelperClient
     private static NetworkHelperClient createClient(String ip, int port, String location) {
 
         try {
+            // check if server is reachable
             if (!InetAddress.getByName(ip).isReachable(1000)) {
                 if (!InetAddress.getByName(ip).isReachable(5000)) {
                     System.out.println("Server is not reachable");
@@ -55,6 +60,7 @@ public class Main {
                 }
             }
 
+            // if yes, return Client instance
             return new NetworkHelperClient(ip, port, location);
         }
         catch (Exception e) {

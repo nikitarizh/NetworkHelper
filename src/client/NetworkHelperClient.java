@@ -14,27 +14,33 @@ public class NetworkHelperClient {
     private Socket socket;
     private DataInputStream din;
     private DataOutputStream dout;
-
     private RequestListener requestListener;
 
     public NetworkHelperClient(String ip, int p, String loc) throws Exception {
+        // set config
         serverIp = ip;
         port = p;
         location = loc;
 
+        // set new ClientThread
         new ClientThread().start();
 
+        // set new user input listener
         requestListener = new RequestListener();
         requestListener.start();
 
+        // set server response listener
         new ResponseListener();
 
     }
 
+    // API: closes connection
     public void closeConnection() {
         requestListener.closeConnection();
     }
 
+    // ClientThread class
+    // sets connection to server
     private class ClientThread extends Thread {
 
         public void run() {
@@ -77,19 +83,26 @@ public class NetworkHelperClient {
         }
     }
 
-
+    // ResponseListener class
+    // listens to server responses
     private class ResponseListener {
         public ResponseListener() {
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
+            // try to read InputStream every 500ms
             executor.scheduleAtFixedRate(() -> {
                 try {
                     if (din.available() > 0) {
+                        // read response
                         String res = din.readUTF();
-                        System.out.println(res);
+                        // process responses
+                        //  1 - print online hosts
                         if (res.charAt(0) == '1') {
+                            // remove response code
                             res.substring(res.indexOf(';') + 1);
+                            // ';' is ip separator
                             String[] ips = res.split(";");
 
+                            // display this machine ip
                             String currIp = InetAddress.getLocalHost().getHostAddress();
                             for (int i = 0; i < ips.length; i++) {
                                 System.out.println(ips[i].split("-")[0] + " ---- " + currIp);
@@ -98,6 +111,7 @@ public class NetworkHelperClient {
                                 }
                             }
 
+                            // print result
                             System.out.println("\n------ONLINE HOSTS:------\n");
 
                             for (int i = 0; i < ips.length; i++) {
@@ -117,6 +131,8 @@ public class NetworkHelperClient {
         }
     }
 
+    // RequestListener class
+    // listens to user input
     private class RequestListener extends Thread {
         public void run() {
             Scanner in = new Scanner(System.in);
@@ -163,7 +179,6 @@ public class NetworkHelperClient {
             }
 
         }
-
 
         public void closeConnection() {
             try {
