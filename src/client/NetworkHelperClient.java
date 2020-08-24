@@ -185,7 +185,7 @@ public class NetworkHelperClient {
     }
 
     // connects to Server
-    // returns true if connected, false is no or error occured
+    // returns true if connected, false if no or error occured
     private boolean connect() {
         // set new ClientThread
         clientThread = null;
