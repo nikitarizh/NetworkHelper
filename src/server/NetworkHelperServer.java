@@ -229,6 +229,8 @@ class NetworkHelperServer {
                             String ip = getClientIp();
                             Logger.log("Host " + ip + " (location: " + locationByIp.get(ip) + ") disconnected");
                             removeIpLocation(ip, locationByIp.get(ip));
+                            din.close();
+                            dout.close();
                             socket.close();
                             executor.shutdownNow();
                             return;

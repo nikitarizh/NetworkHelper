@@ -14,24 +14,27 @@ public class NetworkHelperClient {
     private Socket socket;
     private DataInputStream din;
     private DataOutputStream dout;
+    private ClientThread clientThread;
     private RequestListener requestListener;
+    private ResponseListener responseListener;
 
     public NetworkHelperClient(String ip, int p, String loc) throws Exception {
+        
+        //set defaults
+        clientThread = null;
+        requestListener = null;
+        responseListener = null;
+
         // set config
         serverIp = ip;
         port = p;
         location = loc;
 
-        // set new ClientThread
-        new ClientThread().start();
-
-        // set new user input listener
-        requestListener = new RequestListener();
-        requestListener.start();
-
-        // set server response listener
-        new ResponseListener();
-
+        // connect to the server
+        if (!connect()) {
+            System.out.println("Couldn't connect to the server");
+            System.exit(0);
+        }
     }
 
     // API: closes connection
@@ -42,21 +45,22 @@ public class NetworkHelperClient {
     // ClientThread class
     // sets connection to server
     private class ClientThread extends Thread {
-
+        public boolean threadStarted = false;
         public void run() {
             try {
                 socket = new Socket(serverIp, port);
                 din = getDIN();
                 dout = getDOUT();
 
-
                 dout.writeUTF("__SYSTEM__-location-" + location);
                 dout.flush();
+
+                threadStarted = true;
             }
             catch (Exception e) {
+                threadStarted = false;
                 System.out.println("Error creating ClientThread");
                 System.out.println(e.getMessage());
-                System.exit(0);
             }
         }
 
@@ -66,7 +70,6 @@ public class NetworkHelperClient {
             }
             catch (Exception e) {
                 System.out.println("Creating DIN failed");
-                System.exit(0);
             }
             return null;
         }
@@ -77,7 +80,6 @@ public class NetworkHelperClient {
             }
             catch (Exception e) {
                 System.out.println("Creating DOUT failed");
-                System.exit(0);
             }
             return null;
         }
@@ -86,26 +88,28 @@ public class NetworkHelperClient {
     // ResponseListener class
     // listens to server responses
     private class ResponseListener {
+        public boolean threadStarted = false;
+        public boolean listenToResponses = true;
         public ResponseListener() {
+            threadStarted = true;
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
             // try to read InputStream every 500ms
             executor.scheduleAtFixedRate(() -> {
                 try {
-                    if (din.available() > 0) {
+                    if (din.available() > 0 && listenToResponses) {
                         // read response
                         String res = din.readUTF();
                         // process responses
                         //  1 - print online hosts
                         if (res.charAt(0) == '1') {
                             // remove response code
-                            res.substring(res.indexOf(';') + 1);
+                            res = res.substring(res.indexOf(';') + 1);
                             // ';' is ip separator
                             String[] ips = res.split(";");
 
-                            // display this machine ip
+                            // display this machine's ip
                             String currIp = InetAddress.getLocalHost().getHostAddress();
                             for (int i = 0; i < ips.length; i++) {
-                                System.out.println(ips[i].split("-")[0] + " ---- " + currIp);
                                 if (ips[i].split("-")[0].equals(currIp)) {
                                     ips[i] += " (THIS MACHINE)";
                                 }
@@ -125,7 +129,7 @@ public class NetworkHelperClient {
                         }
                     }
                 }
-                catch (Exception e) {};
+                catch (Exception e) {}
 
             }, 0, 500, TimeUnit.MILLISECONDS);
         }
@@ -134,7 +138,10 @@ public class NetworkHelperClient {
     // RequestListener class
     // listens to user input
     private class RequestListener extends Thread {
+        public boolean threadStarted = false;
+
         public void run() {
+            threadStarted = true;
             Scanner in = new Scanner(System.in);
             int req = in.nextInt();
             while (req != 0) {
@@ -152,20 +159,7 @@ public class NetworkHelperClient {
                         break;
                 }
             }
-            in.close();
             System.exit(0);
-        }
-
-        private void reconnect() {
-            try {
-                System.out.println("Trying to reconnect...");
-                socket = new Socket(serverIp, port);
-                System.out.println("Connection restored");
-            }
-            catch(Exception e1) {
-                System.out.println("Reconnection to server failed");
-                System.exit(0);
-            }
         }
 
         private void getOnlineHosts() {
@@ -184,12 +178,41 @@ public class NetworkHelperClient {
             try {
                 dout.writeInt(0);
                 dout.flush();
+                socket.close();
             }
-            catch (Exception e) {
-                System.out.println("Connection lost");
-                reconnect();
-            }
+            catch (Exception e) {}
         }
     }
-    
+
+    // connects to Server
+    // returns true if connected, false is no or error occured
+    private boolean connect() {
+        // set new ClientThread
+        clientThread = null;
+        clientThread = new ClientThread();
+        clientThread.start();
+
+        // set new user input listener
+        requestListener = null;
+        requestListener = new RequestListener();
+        requestListener.start();
+
+        // set server response listener
+        responseListener = null;
+        responseListener = new ResponseListener(); 
+
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {}
+        
+
+        return clientThread.threadStarted && requestListener.threadStarted && responseListener.threadStarted;
+    }
+
+    // tries to reconnect
+    // returns true if reconnected, false if no or error occured
+    private boolean reconnect() {
+        System.out.println("Trying to reconnect...");
+        return connect();
+    }
 }
