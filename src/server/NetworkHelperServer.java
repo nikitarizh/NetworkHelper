@@ -121,12 +121,12 @@ class NetworkHelperServer {
     // API: returns list of online hosts
     public TreeSet<String> getHosts() {
         if (!isScanning) {
-            Logger.log("Initiating scan... (getHosts)");
+            Logger.log("    Initiating scan... (getHosts)");
             checkHosts(5000);
-            Logger.log("Scan finished (getHosts)");
+            Logger.log("    Scan finished (getHosts)");
         }
         else {
-            Logger.report("System is currently performing a scan, waiting... (getHosts)");
+            Logger.report("    System is currently performing a scan, waiting... (getHosts)");
             try {
                 Thread.sleep(5100);
             } catch (Exception e) {}
@@ -197,7 +197,7 @@ class NetworkHelperServer {
                 pushIpLocation(ip, location);
 
                 // log new connection
-                Logger.log("Host " + ip + " (location: " + locationByIp.get(ip) + ") connected");
+                Logger.logConnection(ip, locationByIp.get(ip));
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -208,14 +208,17 @@ class NetworkHelperServer {
             executor.scheduleAtFixedRate(() -> {
                 int inp;
                 String out = "";
+                String request = "";
                 try {
                     if (din.available() > 0) {
                         inp = din.readInt();
                         out += Integer.toString(inp) + ';';
                         // 1 - get online hosts
                         if (inp == 1) {
+                            request = "1 - 'Get online hosts'";
+                            Logger.logRequestAccepted(getClientIp(), request);
                             TreeSet<String> outIps = getHosts();
-
+                            
                             for (String ip : outIps) {
                                 out += ip + '-' + locationByIp.get(ip) + ';';
                             }
@@ -227,7 +230,7 @@ class NetworkHelperServer {
                         // 0 - close connection
                         else if (inp == 0) {
                             String ip = getClientIp();
-                            Logger.log("Host " + ip + " (location: " + locationByIp.get(ip) + ") disconnected");
+                            Logger.logDisconnection(ip, locationByIp.get(ip));
                             removeIpLocation(ip, locationByIp.get(ip));
                             din.close();
                             dout.close();
@@ -243,6 +246,9 @@ class NetworkHelperServer {
                         // send response
                         dout.writeUTF(out);
                         dout.flush();
+
+                        // log response
+                        Logger.logRequestFinished(getClientIp(), request);
                     }
                 }
                 catch (IOException e) {
