@@ -120,7 +120,12 @@ public class NetworkHelperClient {
 
                             for (int i = 0; i < ips.length; i++) {
                                 String[] ipWithLocation = ips[i].split("-");
-                                System.out.println(ipWithLocation[0] + " (" + ipWithLocation[1] + ")");
+                                if (ipWithLocation[1].equals("null")) {
+                                    System.out.println(ipWithLocation[0] + " (unknown)");
+                                }
+                                else {
+                                    System.out.println(ipWithLocation[0] + " (" + ipWithLocation[1] + ")");
+                                }
                             }
                             System.out.println("\n-----------***-----------\n");
                         }

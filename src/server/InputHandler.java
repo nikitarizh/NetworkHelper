@@ -20,6 +20,7 @@ public class InputHandler {
                         // 1 - print online hosts
                         case 1: 
                             TreeSet<String> ips = nhs.getHosts();
+                            HashMap<String, String> locations = nhs.getLocationByIp();
                             String serverIp = nhs.getIp();
                             System.out.println("\n------ONLINE HOSTS------\n");
 
@@ -28,7 +29,12 @@ public class InputHandler {
                                     System.out.println(ip + " (SERVER)");
                                 }
                                 else {
-                                    System.out.println(ip);
+                                    System.out.println(ip + 
+                                                        (!(locations.get(ip) == null) ? 
+                                                                                            (" (" + locations.get(ip) + ")") 
+                                                                                            : 
+                                                                                            " (unknown)")
+                                                        );
                                 }
                             }
                             System.out.println("\n-----------***----------");
