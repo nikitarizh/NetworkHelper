@@ -46,5 +46,7 @@ public class Main {
                 }
             }
         }, (long) 0, (long) 10000);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> nhs.shutdown()));
     }
 }

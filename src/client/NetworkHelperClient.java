@@ -129,6 +129,15 @@ public class NetworkHelperClient {
                             }
                             System.out.println("\n-----------***-----------\n");
                         }
+                        // process system responses
+                        else if (res.startsWith("__SYSTEM__")) {
+                            String[] parsedSystem = res.split("-");
+                            String command = parsedSystem[1];
+                            if (command.equals("disconnect")) {
+                                System.out.println("Server closed connection");
+                                System.exit(0);
+                            }
+                        }
                         else {
                             System.out.println("SERVER: " + res);
                         }

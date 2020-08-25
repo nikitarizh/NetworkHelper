@@ -15,6 +15,7 @@ class NetworkHelperServer {
     private TreeSet<String> ips;
     private HashMap<String, String> ipByLocation;
     private HashMap<String, String> locationByIp;
+    private LinkedList<ServerThread> connections;
     
     public NetworkHelperServer(String sub, int port) {
         // set subnet and initialize HashMaps
@@ -22,6 +23,7 @@ class NetworkHelperServer {
         ips = new TreeSet<String>();
         ipByLocation = new HashMap<String, String>();
         locationByIp = new HashMap<String, String>();
+        connections = new LinkedList<ServerThread>();
         
         try {
             // set ip of the server
@@ -32,8 +34,7 @@ class NetworkHelperServer {
         catch (Exception e) {}
         
         // set new connection handler
-        new ConnectionHandler(port).start();
-        
+        new ConnectionHandler(port).start();        
     }
 
     // API: check online hosts
@@ -139,6 +140,18 @@ class NetworkHelperServer {
         return locationByIp;
     }
 
+    // API: closes all active connections and shutdowns server
+    public void shutdown() {
+        Logger.logYellow("Initiated server shutdown...");
+
+        for (ServerThread thread : connections) {
+            thread.closeConnection();
+        }
+        connections.clear();
+
+        Logger.logRed("Server closed");
+    }
+
     // ConnectionHandler class
     // handles new connections to the server
     private class ConnectionHandler extends Thread {
@@ -167,7 +180,9 @@ class NetworkHelperServer {
                 catch (Exception e) {}
 
                 // start a new thread that will handle Client requests
-                new ServerThread(s).start();
+                ServerThread thread = new ServerThread(s);
+                thread.start();
+                connections.add(thread);
             }
         }
     }
@@ -176,16 +191,32 @@ class NetworkHelperServer {
     // handles Client requests
     private class ServerThread extends Thread {
         private Socket socket;
+        private DataInputStream din;
+        private DataOutputStream dout;
 
         public ServerThread(Socket clientSocket) {
             socket = clientSocket;
         }
 
+        public void closeConnection() {
+            try {
+                dout.writeUTF("__SYSTEM__-disconnect");
+                dout.flush();
+
+                String ip = getClientIp();
+                Logger.logDisconnection(ip, locationByIp.get(ip));
+                removeIpLocation(ip, locationByIp.get(ip));
+
+                socket.close();
+            }
+            catch (Exception e) {}
+        }
+
         public void run() {
 
             // set input and output streams
-            final DataInputStream din = getDIN();
-            final DataOutputStream dout = getDOUT();
+            din = getDIN();
+            dout = getDOUT();
 
             // handle new connection
             try {
@@ -229,12 +260,7 @@ class NetworkHelperServer {
                         }
                         // 0 - close connection
                         else if (inp == 0) {
-                            String ip = getClientIp();
-                            Logger.logDisconnection(ip, locationByIp.get(ip));
-                            removeIpLocation(ip, locationByIp.get(ip));
-                            din.close();
-                            dout.close();
-                            socket.close();
+                            closeConnection();
                             executor.shutdownNow();
                             return;
                         }

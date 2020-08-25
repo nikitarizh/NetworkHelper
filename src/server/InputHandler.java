@@ -30,10 +30,9 @@ public class InputHandler {
                                 }
                                 else {
                                     System.out.println(ip + 
-                                                        (!(locations.get(ip) == null) ? 
-                                                                                            (" (" + locations.get(ip) + ")") 
-                                                                                            : 
-                                                                                            " (unknown)")
+                                                        (!(locations.get(ip) == null) 
+                                                            ? (" (" + locations.get(ip) + ")") 
+                                                            : " (unknown)")
                                                         );
                                 }
                             }

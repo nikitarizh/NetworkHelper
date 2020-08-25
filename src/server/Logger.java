@@ -51,6 +51,14 @@ public class Logger {
         System.out.println(ANSI_CYAN + "Request " + request + " of host " + ip + " has been processed" + ANSI_RESET);
     }
 
+    public static void logRed(String message) {
+        System.out.println(ANSI_RED + "\n" + message + ANSI_RESET);
+    }
+
+    public static void logYellow(String message) {
+        System.out.println(ANSI_YELLOW + "\n" + message + ANSI_RESET);
+    }
+
     // prints message + current date
     public static void log(String message) {
         System.out.println(message + " (" + getCurrentDate() + ")");
