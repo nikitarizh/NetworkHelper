@@ -7,8 +7,10 @@ public class InputHandler {
     private Scanner in = new Scanner(System.in);
 
     public InputHandler(NetworkHelperServer nhs) {
+
         // print info about commands
         printInfo();
+        
         // set new Thread that will listen to user input
         new Thread(new Runnable() {
             public void run() {

@@ -47,6 +47,7 @@ public class Main {
             }
         }, (long) 0, (long) 10000);
 
+        // correct server shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> nhs.shutdown()));
     }
 }

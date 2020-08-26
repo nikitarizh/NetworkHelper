@@ -45,7 +45,9 @@ public class NetworkHelperClient {
     // ClientThread class
     // sets connection to server
     private class ClientThread extends Thread {
+
         public boolean threadStarted = false;
+
         public void run() {
             try {
                 socket = new Socket(serverIp, port);
@@ -64,6 +66,7 @@ public class NetworkHelperClient {
             }
         }
 
+        // returns DataInputStream of socket
         private DataInputStream getDIN() {
             try {
                 return new DataInputStream(socket.getInputStream());
@@ -74,6 +77,7 @@ public class NetworkHelperClient {
             return null;
         }
 
+        // returns DataOutputStream of socket
         private DataOutputStream getDOUT() {
             try {
                 return new DataOutputStream(socket.getOutputStream());
@@ -88,8 +92,10 @@ public class NetworkHelperClient {
     // ResponseListener class
     // listens to server responses
     private class ResponseListener {
+
         public boolean threadStarted = false;
         public boolean listenToResponses = true;
+
         public ResponseListener() {
             threadStarted = true;
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
@@ -120,24 +126,31 @@ public class NetworkHelperClient {
 
                             for (int i = 0; i < ips.length; i++) {
                                 String[] ipWithLocation = ips[i].split("-");
+                                // if location is unknown, display "unknown" instead of "null"
                                 if (ipWithLocation[1].equals("null")) {
                                     System.out.println(ipWithLocation[0] + " (unknown)");
                                 }
+                                // display the location if it's known
                                 else {
                                     System.out.println(ipWithLocation[0] + " (" + ipWithLocation[1] + ")");
                                 }
                             }
                             System.out.println("\n-----------***-----------\n");
                         }
+                        
                         // process system responses
                         else if (res.startsWith("__SYSTEM__")) {
                             String[] parsedSystem = res.split("-");
                             String command = parsedSystem[1];
+
+                            // disconnect
                             if (command.equals("disconnect")) {
                                 System.out.println("Server closed connection");
                                 System.exit(0);
                             }
                         }
+
+                        // debug output
                         else {
                             System.out.println("SERVER: " + res);
                         }
@@ -176,6 +189,7 @@ public class NetworkHelperClient {
             System.exit(0);
         }
 
+        // requests online hosts (sends code 1)
         private void getOnlineHosts() {
             try {
                 dout.writeInt(1);
@@ -188,6 +202,7 @@ public class NetworkHelperClient {
 
         }
 
+        // closes connection with Server (sends code 0; closes socket)
         public void closeConnection() {
             try {
                 dout.writeInt(0);

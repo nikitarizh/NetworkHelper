@@ -155,6 +155,7 @@ class NetworkHelperServer {
     // ConnectionHandler class
     // handles new connections to the server
     private class ConnectionHandler extends Thread {
+
         private int port;
 
         public ConnectionHandler(int p) {
@@ -190,6 +191,7 @@ class NetworkHelperServer {
     // ServerThread class
     // handles Client requests
     private class ServerThread extends Thread {
+
         private Socket socket;
         private DataInputStream din;
         private DataOutputStream dout;
@@ -198,6 +200,7 @@ class NetworkHelperServer {
             socket = clientSocket;
         }
 
+        // closes connection (sends system code; removes ip and location from HashMaps; closes socket)
         public void closeConnection() {
             try {
                 dout.writeUTF("__SYSTEM__-disconnect");
@@ -256,7 +259,7 @@ class NetworkHelperServer {
                         }
                         // 2 - initiate immediate scan (?)
                         else if (inp == 2) {
-                            
+                            // TODO: implement immediate scan (?)
                         }
                         // 0 - close connection
                         else if (inp == 0) {
