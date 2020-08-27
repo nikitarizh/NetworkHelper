@@ -10,7 +10,7 @@ public class InputHandler {
 
         // print info about commands
         printInfo();
-        
+
         // set new Thread that will listen to user input
         new Thread(new Runnable() {
             public void run() {
@@ -68,8 +68,7 @@ public class InputHandler {
                             break;
                     }
                 }
-                // when input is exit code, close input stream and client
-                in.close();
+                // when input is exit code, close client
                 System.exit(0);
             }
         }).start();

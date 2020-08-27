@@ -100,13 +100,13 @@ class NetworkHelperServer {
 
     // API: check particular host
     public void checkHost(String ip, int timeout) {
-        System.out.println("Trying to ping " + ip);
+        Logger.report("Trying to ping " + ip);
         try {
             if (InetAddress.getByName(ip).isReachable(timeout)) {
-                System.out.println("Host " + ip + " is reachable");
+                Logger.logSuccess("Host " + ip + " is reachable");
             }
             else {
-                System.out.println("Host " + ip + " is NOT reachable");
+                Logger.logError("Host " + ip + " is NOT reachable");
             }
         }
         catch (Exception e) {
@@ -169,9 +169,11 @@ class NetworkHelperServer {
                 ss = new ServerSocket(port);
             }
             catch (Exception e) {
-                System.out.println("Server socket creation failed");
+                Logger.logError("Server socket creation failed");
                 System.exit(0);
             }
+
+            Logger.logSuccess("Server is running at " + serverIp + ":" + port + "\n");
             
             // handle new connection
             while (true) {
@@ -215,6 +217,18 @@ class NetworkHelperServer {
             catch (Exception e) {}
         }
 
+        // closes connection without notificating Client (removes ip and location from HashMaps; closes socket)
+        public void closeConnectionWithoutNotification() {
+            try {
+                String ip = getClientIp();
+                Logger.logDisconnection(ip, locationByIp.get(ip));
+                removeIpLocation(ip, locationByIp.get(ip));
+
+                socket.close();
+            }
+            catch (Exception e) {}
+        }
+
         public void run() {
 
             // set input and output streams
@@ -240,48 +254,59 @@ class NetworkHelperServer {
             // Client requests handler
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
             executor.scheduleAtFixedRate(() -> {
-                int inp;
+                String inp;
                 String out = "";
                 String request = "";
                 try {
-                    if (din.available() > 0) {
-                        inp = din.readInt();
-                        out += Integer.toString(inp) + ';';
-                        // 1 - get online hosts
-                        if (inp == 1) {
-                            request = "1 - 'Get online hosts'";
-                            Logger.logRequestAccepted(getClientIp(), request);
-                            TreeSet<String> outIps = getHosts();
-                            
-                            for (String ip : outIps) {
-                                out += ip + '-' + locationByIp.get(ip) + ';';
-                            }
-                        }
-                        // 2 - initiate immediate scan (?)
-                        else if (inp == 2) {
-                            // TODO: implement immediate scan (?)
-                        }
-                        // 0 - close connection
-                        else if (inp == 0) {
-                            closeConnection();
-                            executor.shutdownNow();
-                            return;
-                        }
-                        // other - invalid
-                        else {
-                            out = "Incorrect command";
-                        }
+                    inp = din.readUTF();
+                    out += inp + ';';
+                    // 1 - get online hosts
+                    if (inp.equals("1")) {
+                        request = "1 - 'Get online hosts'";
+                        Logger.logRequestAccepted(getClientIp(), request);
 
-                        // send response
-                        dout.writeUTF(out);
-                        dout.flush();
-
-                        // log response
-                        Logger.logRequestFinished(getClientIp(), request);
+                        TreeSet<String> outIps = getHosts();
+                        for (String ip : outIps) {
+                            out += ip + '-' + locationByIp.get(ip) + ';';
+                        }
                     }
+                    // 2 - initiate immediate scan (?)
+                    else if (inp.equals("2")) {
+                        // TODO: implement immediate scan (?)
+                    }
+                    // 0 - close connection
+                    else if (inp.equals("0")) {
+                        closeConnectionWithoutNotification();
+                        executor.shutdownNow();
+                        return;
+                    }
+                    // system requests
+                    else if (inp.startsWith("__SYSTEM__")) {
+                        String[] parsedSystem = inp.split("-");
+                        String command = parsedSystem[1];
+
+                        // ping
+                        if (command.equals("ping")) {
+                            request = "SYSTEM - 'ping'";
+                            Logger.logRequestAccepted(getClientIp(), request);
+
+                            out = "__SYSTEM__-ping";
+                        }
+                    }
+                    // other - invalid
+                    else {
+                        out = "Incorrect command";
+                    }
+
+                    // send response
+                    dout.writeUTF(out);
+                    dout.flush();
+
+                    // log response
+                    Logger.logRequestFinished(getClientIp(), request);
                 }
                 catch (IOException e) {
-                    System.out.println("err: " + e.getMessage());
+                    e.printStackTrace();
                 };
             }, 0, 500, TimeUnit.MILLISECONDS);
         }
@@ -301,7 +326,7 @@ class NetworkHelperServer {
                 return new DataInputStream(socket.getInputStream());
             }
             catch (Exception e) {
-                System.out.println("Creating DIN failed");
+                Logger.logError("Creating DIN failed");
                 System.exit(0);
             }
             return null;
@@ -313,7 +338,7 @@ class NetworkHelperServer {
                 return new DataOutputStream(socket.getOutputStream());
             }
             catch (Exception e) {
-                System.out.println("Creating DOUT failed");
+                Logger.logError("Creating DOUT failed");
                 System.exit(0);
             }
             return null;

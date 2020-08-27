@@ -11,6 +11,7 @@ public class NetworkHelperClient {
     private String serverIp;
     private int port;
     private String location;
+    private boolean sentPing;
     private Socket socket;
     private DataInputStream din;
     private DataOutputStream dout;
@@ -29,12 +30,27 @@ public class NetworkHelperClient {
         serverIp = ip;
         port = p;
         location = loc;
+        sentPing = false;
 
         // connect to the server
         if (!connect()) {
             System.out.println("Couldn't connect to the server");
             System.exit(0);
         }
+
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                if (!sentPing) {
+                    checkConnection();
+                }
+                else {
+                    System.out.println("Connection lost");
+                    System.out.println("Trying to reconnect...");
+                    boolean reconnected = reconnect();
+                    System.out.println(reconnected);
+                }
+            }
+        }, 5000, 10000);
     }
 
     // API: closes connection
@@ -42,6 +58,15 @@ public class NetworkHelperClient {
         requestListener.closeConnection();
     }
 
+    // API: checks connection status
+    public void checkConnection() {
+        try {
+            dout.writeUTF("__SYSTEM__-ping");
+            dout.flush();
+            sentPing = true;
+        }
+        catch (Exception e) {};
+    }
     // ClientThread class
     // sets connection to server
     private class ClientThread extends Thread {
@@ -146,7 +171,11 @@ public class NetworkHelperClient {
                             // disconnect
                             if (command.equals("disconnect")) {
                                 System.out.println("Server closed connection");
-                                System.exit(0);
+                            }
+
+                            // ping
+                            else if (command.equals("ping")) {
+                                sentPing = false;
                             }
                         }
 
@@ -166,6 +195,16 @@ public class NetworkHelperClient {
     // listens to user input
     private class RequestListener extends Thread {
         public boolean threadStarted = false;
+
+        // closes connection with Server (sends code 0; closes socket)
+        public void closeConnection() {
+            try {
+                dout.writeUTF("0");
+                dout.flush();
+                socket.close();
+            }
+            catch (Exception e) {}
+        }
 
         public void run() {
             threadStarted = true;
@@ -192,7 +231,7 @@ public class NetworkHelperClient {
         // requests online hosts (sends code 1)
         private void getOnlineHosts() {
             try {
-                dout.writeInt(1);
+                dout.writeUTF("1");
                 dout.flush();
             }
             catch (Exception e) {
@@ -201,21 +240,17 @@ public class NetworkHelperClient {
             }
 
         }
-
-        // closes connection with Server (sends code 0; closes socket)
-        public void closeConnection() {
-            try {
-                dout.writeInt(0);
-                dout.flush();
-                socket.close();
-            }
-            catch (Exception e) {}
-        }
     }
 
     // connects to Server
     // returns true if connected, false if no or error occured
     private boolean connect() {
+        
+        // resetting IO
+        socket = null;
+        din = null;
+        dout = null;
+
         // set new ClientThread
         clientThread = null;
         clientThread = new ClientThread();

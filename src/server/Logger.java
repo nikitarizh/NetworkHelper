@@ -44,11 +44,11 @@ public class Logger {
     }
 
     public static void logRequestAccepted(String ip, String request) {
-        System.out.println(ANSI_CYAN + "\nHost " + ip + " requested " + request + ANSI_RESET);
+        System.out.println(ANSI_CYAN + "\nHost " + ip + " requested " + request + "(" + getCurrentDate() + ")" + ANSI_RESET);
     }
 
     public static void logRequestFinished(String ip, String request) {
-        System.out.println(ANSI_CYAN + "Request " + request + " of host " + ip + " has been processed" + ANSI_RESET);
+        System.out.println(ANSI_CYAN + "Request " + request + " of host " + ip + " has been processed (" + getCurrentDate() + ")" + ANSI_RESET);
     }
 
     public static void logRed(String message) {
@@ -57,6 +57,18 @@ public class Logger {
 
     public static void logYellow(String message) {
         System.out.println(ANSI_YELLOW + "\n" + message + ANSI_RESET);
+    }
+
+    public static void logSuccess(String message) {
+        System.out.println(ANSI_GREEN + "\n" + message + ANSI_RESET);
+    }
+
+    public static void logWarning(String message) {
+        System.out.println(ANSI_YELLOW + "\n" + message + ANSI_RESET);
+    }
+
+    public static void logError(String message) {
+        System.out.println(ANSI_RED + "\n" + message + ANSI_RESET);
     }
 
     // prints message + current date

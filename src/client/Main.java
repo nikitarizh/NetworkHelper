@@ -2,6 +2,7 @@ package client;
 
 import java.net.InetAddress;
 import java.util.*;
+import java.io.*;
 
 public class Main {
 
@@ -13,26 +14,65 @@ public class Main {
         int port = 0;
         String location = "";
 
-        // enter parameters
-        System.out.println("\nEnter server address: ");
+        // try to find config file
+        File configFile = new File("clientConfig.properties");
         try {
-            ip = in.next();
-        }
-        catch (Exception e) {
-            // Set default ip
-        }
-        System.out.println("\nEnter port:");
-        try {
-            port = in.nextInt();
-        }
-        catch (Exception e) {
-            // Set default port
-        }
-        System.out.println("\nEnter location:");
-        try {
-            location = in.next();
+            FileReader reader = new FileReader(configFile);
+            Properties props = new Properties();
+            props.load(reader);
+        
+            String fileIp = props.getProperty("serverIp");
+            String filePort = props.getProperty("port");
+            String fileLocation = props.getProperty("location");
+        
+            reader.close();
+
+            if (isNotNullOrEmpty(fileIp) && isNotNullOrEmpty(filePort) && isNotNullOrEmpty(fileLocation)) {
+                System.out.println("Found a config file. Do you want to load parameters from it? y/n");
+                char inp = in.next().charAt(0);
+                if (inp == 'y') {
+                    ip = fileIp;
+                    port = Integer.parseInt(filePort);
+                    location = fileLocation;
+                }
+            }
         }
         catch (Exception e) {}
+
+        // enter parameters (if no config found or user wanted to enter manually)
+        if (ip.equals("") || port == 0 || location.equals("")) {
+            // enter parameters
+            System.out.println("\nEnter server address: ");
+            while (true) {
+                try {
+                    ip = in.next();
+                    break;
+                }
+                catch (Exception e) {
+                    System.out.println("Incorrect input. Please, try again");
+                }
+            }
+            System.out.println("\nEnter port:");
+            while (true) {
+                try {
+                    port = in.nextInt();
+                    break;
+                }
+                catch (Exception e) {
+                    System.out.println("Incorrect input. Please, try again");
+                }
+            }
+            System.out.println("\nEnter location:");
+            while (true) {
+                try {
+                    location = in.next();
+                    break;
+                }
+                catch (Exception e) {
+                    System.out.println("Incorrect input. Please, try again");
+                }
+            }
+        }
 
         // initialize client
         NetworkHelperClient nhc = createClient(ip, port, location);
@@ -68,5 +108,9 @@ public class Main {
         }
 
         return null;
+    }
+
+    private static boolean isNotNullOrEmpty(String s) {
+        return (s != null) && !(s.isEmpty());
     }
 }

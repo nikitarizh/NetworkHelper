@@ -2,11 +2,12 @@ package server;
 
 import java.io.IOException;
 import java.util.*;
+import java.io.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
         // prefer IPv4 over IPv6
-        System.setProperty("java.net.preferIPv4Stack" , "true");   
+        System.setProperty("java.net.preferIPv4Stack" , "true");
         // set Input scanner
         Scanner in = new Scanner(System.in);
         
@@ -14,21 +15,51 @@ public class Main {
         String subnet = "";
         int port = 0;
 
-        // enter parameters
-        System.out.println("\nEnter subnet: ");
+        // try to find config file
+        File configFile = new File("serverConfig.properties");
         try {
-            subnet = in.next();
-        }
-        catch (Exception e) {
-            // Set default subnet
-        }
+            FileReader reader = new FileReader(configFile);
+            Properties props = new Properties();
+            props.load(reader);
         
-        System.out.println("\nEnter port: ");
-        try {
-            port = in.nextInt();
+            String fileSubnet = props.getProperty("subnet");
+            String filePort = props.getProperty("port");
+        
+            reader.close();
+            if (isNotNullOrEmpty(fileSubnet) && isNotNullOrEmpty(filePort)) {
+                System.out.println("Found a config file. Do you want to load parameters from it? y/n");
+                char inp = in.next().charAt(0);
+                if (inp == 'y') {
+                    subnet = fileSubnet;
+                    port = Integer.parseInt(filePort);
+                }
+            }
         }
-        catch (Exception e) {
-            // Set default port
+        catch (Exception e) {}
+
+        // enter parameters (if no config found or user wanted to enter manually)
+        if (subnet.equals("") || port == 0) {
+            System.out.println("\nEnter subnet: ");
+            while (true) {
+                try {
+                    subnet = in.next();
+                    break;
+                }
+                catch (Exception e) {
+                    System.out.println("Incorrect input. Please, try again");
+                }
+            }
+            
+            System.out.println("\nEnter port: ");
+            while (true) {
+                try {
+                    port = in.nextInt();
+                    break;
+                }
+                catch (Exception e) {
+                    System.out.println("Incorrect input. Please, try again");
+                }
+            }
         }
 
         // initialize Server
@@ -49,5 +80,9 @@ public class Main {
 
         // correct server shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> nhs.shutdown()));
+    }
+
+    private static boolean isNotNullOrEmpty(String s) {
+        return (s != null) && !(s.isEmpty());
     }
 }
