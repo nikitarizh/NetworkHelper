@@ -30,7 +30,7 @@ public class Main {
             if (isNotNullOrEmpty(fileIp) && isNotNullOrEmpty(filePort) && isNotNullOrEmpty(fileLocation)) {
                 System.out.println("Found a config file. Do you want to load parameters from it? y/n");
                 char inp = in.next().charAt(0);
-                if (inp == 'y') {
+                if (inp == 'y' || inp == 'Y') {
                     ip = fileIp;
                     port = Integer.parseInt(filePort);
                     location = fileLocation;
