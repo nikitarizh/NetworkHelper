@@ -50,6 +50,7 @@ public class Main {
                 }
                 catch (Exception e) {
                     System.out.println("Incorrect input. Please, try again");
+                    in.next();
                 }
             }
             System.out.println("\nEnter port:");
@@ -60,6 +61,7 @@ public class Main {
                 }
                 catch (Exception e) {
                     System.out.println("Incorrect input. Please, try again");
+                    in.next();
                 }
             }
             System.out.println("\nEnter location:");
@@ -70,6 +72,7 @@ public class Main {
                 }
                 catch (Exception e) {
                     System.out.println("Incorrect input. Please, try again");
+                    in.next();
                 }
             }
         }

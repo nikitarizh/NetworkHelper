@@ -47,6 +47,7 @@ public class Main {
                 }
                 catch (Exception e) {
                     System.out.println("Incorrect input. Please, try again");
+                    in.next();
                 }
             }
             
@@ -58,6 +59,7 @@ public class Main {
                 }
                 catch (Exception e) {
                     System.out.println("Incorrect input. Please, try again");
+                    in.next();
                 }
             }
         }
