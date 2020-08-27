@@ -29,7 +29,7 @@ public class Main {
             if (isNotNullOrEmpty(fileSubnet) && isNotNullOrEmpty(filePort)) {
                 System.out.println("Found a config file. Do you want to load parameters from it? y/n");
                 char inp = in.next().charAt(0);
-                if (inp == 'y') {
+                if (inp == 'y' || inp == 'Y') {
                     subnet = fileSubnet;
                     port = Integer.parseInt(filePort);
                 }
