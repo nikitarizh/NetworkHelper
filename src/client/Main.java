@@ -83,9 +83,6 @@ public class Main {
             System.out.println("Client creation failed");
             System.exit(0);
         }
-        else {
-            System.out.println("\nConnection successful\n");
-        }
 
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(() -> nhc.closeConnection()));

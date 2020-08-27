@@ -16,6 +16,7 @@ class NetworkHelperServer {
     private HashMap<String, String> ipByLocation;
     private HashMap<String, String> locationByIp;
     private LinkedList<ServerThread> connections;
+    private Vector<String> unusedThreads;
     
     public NetworkHelperServer(String sub, int port) {
         // set subnet and initialize HashMaps
@@ -24,6 +25,7 @@ class NetworkHelperServer {
         ipByLocation = new HashMap<String, String>();
         locationByIp = new HashMap<String, String>();
         connections = new LinkedList<ServerThread>();
+        unusedThreads = new Vector<String>();
         
         try {
             // set ip of the server
@@ -34,7 +36,13 @@ class NetworkHelperServer {
         catch (Exception e) {}
         
         // set new connection handler
-        new ConnectionHandler(port).start();        
+        new ConnectionHandler(port).start();     
+        
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                closeUnusedThreads();
+            }
+        }, 0, 5000);
     }
 
     // API: check online hosts
@@ -145,7 +153,7 @@ class NetworkHelperServer {
         Logger.logYellow("Initiated server shutdown...");
 
         for (ServerThread thread : connections) {
-            thread.closeConnection();
+            thread.closeConnection(true);
         }
         connections.clear();
 
@@ -183,7 +191,7 @@ class NetworkHelperServer {
                 catch (Exception e) {}
 
                 // start a new thread that will handle Client requests
-                ServerThread thread = new ServerThread(s);
+                ServerThread thread = new ServerThread(s, Integer.toString(connections.size()));
                 thread.start();
                 connections.add(thread);
             }
@@ -194,37 +202,32 @@ class NetworkHelperServer {
     // handles Client requests
     private class ServerThread extends Thread {
 
+        private String threadName;
         private Socket socket;
         private DataInputStream din;
         private DataOutputStream dout;
 
-        public ServerThread(Socket clientSocket) {
+        public ServerThread(Socket clientSocket, String name) {
+            super(name);
+            threadName = name;
             socket = clientSocket;
         }
 
         // closes connection (sends system code; removes ip and location from HashMaps; closes socket)
-        public void closeConnection() {
+        public void closeConnection(boolean notificate) {
             try {
-                dout.writeUTF("__SYSTEM__-disconnect");
-                dout.flush();
+                if (notificate) {
+                    dout.writeUTF("__SYSTEM__-disconnect");
+                    dout.flush();
+                }
 
                 String ip = getClientIp();
                 Logger.logDisconnection(ip, locationByIp.get(ip));
                 removeIpLocation(ip, locationByIp.get(ip));
-
+                
                 socket.close();
-            }
-            catch (Exception e) {}
-        }
 
-        // closes connection without notificating Client (removes ip and location from HashMaps; closes socket)
-        public void closeConnectionWithoutNotification() {
-            try {
-                String ip = getClientIp();
-                Logger.logDisconnection(ip, locationByIp.get(ip));
-                removeIpLocation(ip, locationByIp.get(ip));
-
-                socket.close();
+                unusedThreads.add(threadName);
             }
             catch (Exception e) {}
         }
@@ -254,59 +257,66 @@ class NetworkHelperServer {
             // Client requests handler
             ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
             executor.scheduleAtFixedRate(() -> {
-                String inp;
+                String inp = "";
                 String out = "";
                 String request = "";
                 try {
-                    inp = din.readUTF();
-                    out += inp + ';';
-                    // 1 - get online hosts
-                    if (inp.equals("1")) {
-                        request = "1 - 'Get online hosts'";
-                        Logger.logRequestAccepted(getClientIp(), request);
-
-                        TreeSet<String> outIps = getHosts();
-                        for (String ip : outIps) {
-                            out += ip + '-' + locationByIp.get(ip) + ';';
-                        }
-                    }
-                    // 2 - initiate immediate scan (?)
-                    else if (inp.equals("2")) {
-                        // TODO: implement immediate scan (?)
-                    }
-                    // 0 - close connection
-                    else if (inp.equals("0")) {
-                        closeConnectionWithoutNotification();
-                        executor.shutdownNow();
-                        return;
-                    }
-                    // system requests
-                    else if (inp.startsWith("__SYSTEM__")) {
-                        String[] parsedSystem = inp.split("-");
-                        String command = parsedSystem[1];
-
-                        // ping
-                        if (command.equals("ping")) {
-                            request = "SYSTEM - 'ping'";
+                    if (din.available() > 0) {
+                        inp = din.readUTF();
+                        out += inp + ';';
+                        // 1 - get online hosts
+                        if (inp.equals("1")) {
+                            request = "1 - 'Get online hosts'";
                             Logger.logRequestAccepted(getClientIp(), request);
 
-                            out = "__SYSTEM__-ping";
+                            TreeSet<String> outIps = getHosts();
+                            for (String ip : outIps) {
+                                out += ip + '-' + locationByIp.get(ip) + ';';
+                            }
                         }
-                    }
-                    // other - invalid
-                    else {
-                        out = "Incorrect command";
-                    }
+                        // 2 - initiate immediate scan (?)
+                        else if (inp.equals("2")) {
+                            // TODO: implement immediate scan (?)
+                        }
+                        // 0 - close connection
+                        else if (inp.equals("0")) {
+                            closeConnection(false);
+                            executor.shutdownNow();
+                            return;
+                        }
+                        // system requests
+                        else if (inp.startsWith("__SYSTEM__")) {
+                            String[] parsedSystem = inp.split("-");
+                            String command = parsedSystem[1];
 
-                    // send response
-                    dout.writeUTF(out);
-                    dout.flush();
+                            // ping
+                            if (command.equals("ping")) {
+                                request = "SYSTEM - 'ping'";
+                                Logger.logRequestAccepted(getClientIp(), request);
 
-                    // log response
-                    Logger.logRequestFinished(getClientIp(), request);
+                                out = "__SYSTEM__-ping";
+                            }
+
+                            // location
+                            else if (command.equals("location")) {
+                                // ignore
+                            }
+                        }
+                        // other - invalid
+                        else {
+                            out = "Incorrect command";
+                        }
+
+                        // send response
+                        dout.writeUTF(out);
+                        dout.flush();
+
+                        // log response
+                        Logger.logRequestFinished(getClientIp(), request);
+                    }
                 }
                 catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("IO Error: " + e.getMessage() + "(req: " + inp + ")");
                 };
             }, 0, 500, TimeUnit.MILLISECONDS);
         }
@@ -356,5 +366,15 @@ class NetworkHelperServer {
     private void removeIpLocation(String ip, String location) {
         ipByLocation.remove(ip);
         locationByIp.remove(location);
+    }
+
+    // closes unused threads
+    private void closeUnusedThreads() {
+        for (ServerThread thread : connections) {
+            if (unusedThreads.contains(thread.getName())) {
+                thread.interrupt();
+                connections.remove(thread);
+            }
+        }
     }
 }
