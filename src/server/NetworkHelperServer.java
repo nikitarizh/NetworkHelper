@@ -36,13 +36,7 @@ class NetworkHelperServer {
         catch (Exception e) {}
         
         // set new connection handler
-        new ConnectionHandler(port).start();     
-        
-        new Timer().scheduleAtFixedRate(new TimerTask() {
-            public void run() {
-                closeUnusedThreads();
-            }
-        }, 0, 5000);
+        new ConnectionHandler(port).start();
     }
 
     // API: check online hosts
@@ -148,6 +142,16 @@ class NetworkHelperServer {
         return locationByIp;
     }
 
+    // API: sends update code to all active clients
+    public void updateClients() {
+        Logger.logWarning("Initiated clients update...");
+        Logger.logWarning("Threads length: " + Integer.toString(connections.size()));
+        for (ServerThread thread : connections) {
+            thread.sendUpdateCode();
+        }
+        Logger.logSuccess("UPDATE CODES SENT");
+    }
+
     // API: closes all active connections and shutdowns server
     public void shutdown() {
         Logger.logYellow("Initiated server shutdown...");
@@ -191,7 +195,7 @@ class NetworkHelperServer {
                 catch (Exception e) {}
 
                 // start a new thread that will handle Client requests
-                ServerThread thread = new ServerThread(s, Integer.toString(connections.size()));
+                ServerThread thread = new ServerThread(s);
                 thread.start();
                 connections.add(thread);
             }
@@ -202,15 +206,24 @@ class NetworkHelperServer {
     // handles Client requests
     private class ServerThread extends Thread {
 
-        private String threadName;
         private Socket socket;
         private DataInputStream din;
         private DataOutputStream dout;
 
-        public ServerThread(Socket clientSocket, String name) {
-            super(name);
-            threadName = name;
+        public ServerThread(Socket clientSocket) {
             socket = clientSocket;
+        }
+
+        public void sendUpdateCode() {
+
+            try {
+                dout.writeUTF("__SYSTEM__-update");
+                dout.flush();
+                Logger.logSuccess("Update code sent to Host " + getClientIp());
+            }
+            catch (Exception e) {
+                Logger.logError("ERROR SENDING UPDATE CODE TO CLIENT " + getClientIp());
+            }
         }
 
         // closes connection (sends system code; removes ip and location from HashMaps; closes socket)
@@ -224,10 +237,8 @@ class NetworkHelperServer {
                 String ip = getClientIp();
                 Logger.logDisconnection(ip, locationByIp.get(ip));
                 removeIpLocation(ip, locationByIp.get(ip));
-                
-                socket.close();
 
-                unusedThreads.add(threadName);
+                socket.close();
             }
             catch (Exception e) {}
         }
@@ -366,15 +377,5 @@ class NetworkHelperServer {
     private void removeIpLocation(String ip, String location) {
         ipByLocation.remove(ip);
         locationByIp.remove(location);
-    }
-
-    // closes unused threads
-    private void closeUnusedThreads() {
-        for (ServerThread thread : connections) {
-            if (unusedThreads.contains(thread.getName())) {
-                thread.interrupt();
-                connections.remove(thread);
-            }
-        }
     }
 }

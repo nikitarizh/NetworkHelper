@@ -39,7 +39,6 @@ public class InputHandler {
                                 }
                             }
                             System.out.println("\n-----------***----------");
-                            cmd = in.nextInt();
                             break;
                         // 2 - initiate immediate scan
                         case 2:
@@ -57,16 +56,19 @@ public class InputHandler {
                             nhs.userScan = true;
                             nhs.checkHosts(5000);
                             Logger.log("Scan finished");
-
-                            cmd = in.nextInt();
+                            break;
+                        // system requests
+                        //  update all clients
+                        case 900: 
+                            nhs.updateClients();
                             break;
                         // other - invalid
                         default:
                             Logger.report("Invalid command");
                             printInfo();
-                            cmd = in.nextInt();
                             break;
                     }
+                    cmd = in.nextInt();
                 }
                 // when input is exit code, close client
                 System.exit(0);
@@ -79,6 +81,8 @@ public class InputHandler {
         System.out.println("\n----------***----------\n");
         System.out.println("1 - print online hosts");
         System.out.println("2 - perform immediate scan");
+        System.out.println("SYSTEM REQUESTS:");
+        System.out.println("900 - update all clients");
         System.out.println("0 - exit");
         System.out.println("\n----------***----------\n");
     }

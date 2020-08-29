@@ -190,6 +190,12 @@ public class NetworkHelperClient {
                             else if (command.equals("ping")) {
                                 sentPing = false;
                             }
+
+                            // update
+                            else if (command.equals("update")) {
+                                System.out.println("Server initiated update...");
+                                update();
+                            }
                         }
 
                         // debug output
@@ -292,5 +298,25 @@ public class NetworkHelperClient {
     private boolean reconnect() {
         System.out.println("Trying to reconnect...");
         return connect();
+    }
+
+    // launches updater
+    private void update() {
+        // try to find config file
+        File configFile = new File("clientConfig.properties");
+        try {
+            FileReader reader = new FileReader(configFile);
+            Properties props = new Properties();
+            props.load(reader);
+        
+            reader.close();
+
+            props.setProperty("updateAvailable", "true");
+
+            props.store(new FileOutputStream("clientConfig.properties"), null);
+        }
+        catch (Exception e) {
+            System.out.println("Error setting update flag");
+        }
     }
 }
