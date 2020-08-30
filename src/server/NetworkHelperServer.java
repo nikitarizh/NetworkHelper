@@ -16,7 +16,6 @@ class NetworkHelperServer {
     private HashMap<String, String> ipByLocation;
     private HashMap<String, String> locationByIp;
     private LinkedList<ServerThread> connections;
-    private Vector<String> unusedThreads;
     
     public NetworkHelperServer(String sub, int port) {
         // set subnet and initialize HashMaps
@@ -25,7 +24,6 @@ class NetworkHelperServer {
         ipByLocation = new HashMap<String, String>();
         locationByIp = new HashMap<String, String>();
         connections = new LinkedList<ServerThread>();
-        unusedThreads = new Vector<String>();
         
         try {
             // set ip of the server
