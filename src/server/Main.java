@@ -84,6 +84,7 @@ public class Main {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> nhs.shutdown()));
     }
 
+    // returns false is string is null or its' length is 0, true otherwise
     private static boolean isNotNullOrEmpty(String s) {
         return (s != null) && !(s.isEmpty());
     }
