@@ -20,7 +20,7 @@ public class InputHandler {
                 while (cmd != 0) {
                     switch (cmd) {
                         // 1 - print online hosts
-                        case 1: 
+                        case 1:
                             TreeSet<String> ips = nhs.getHosts();
                             HashMap<String, String> locations = nhs.getLocationByIp();
                             String serverIp = nhs.getIp();
@@ -57,6 +57,12 @@ public class InputHandler {
                             nhs.checkHosts(5000);
                             Logger.log("Scan finished");
                             break;
+                        // 3 - ping host by ip
+                        case 3:
+                            Logger.report("Enter ip: ");
+                            String ip = in.next();
+                            nhs.checkHostByIp(ip, 5000);
+                            break;
                         // system requests
                         //  update all clients
                         case 900: 
@@ -81,6 +87,7 @@ public class InputHandler {
         System.out.println("\n----------***----------\n");
         System.out.println("1 - print online hosts");
         System.out.println("2 - perform immediate scan");
+        System.out.println("3 - ping by ip");
         System.out.println("SYSTEM REQUESTS:");
         System.out.println("900 - update all clients");
         System.out.println("0 - exit");

@@ -78,7 +78,7 @@ public class Logger {
 
     // prints message
     public static void report(String message) {
-        System.out.println(message);
+        System.out.println("\n" + message);
     }
 
     // returns current date

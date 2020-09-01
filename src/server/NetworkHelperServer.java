@@ -99,11 +99,18 @@ class NetworkHelperServer {
     }
 
     // API: check particular host
-    public void checkHost(String ip, int timeout) {
+    public void checkHostByIp(String ip, int timeout) {
         Logger.report("Trying to ping " + ip);
         try {
             if (InetAddress.getByName(ip).isReachable(timeout)) {
                 Logger.logSuccess("Host " + ip + " is reachable");
+                String location = locationByIp.get(ip);
+                if (location != null) {
+                    Logger.logSuccess("Location: " + location);
+                }
+                else {
+                    Logger.logWarning("Location is unknown");
+                }
             }
             else {
                 Logger.logError("Host " + ip + " is NOT reachable");
