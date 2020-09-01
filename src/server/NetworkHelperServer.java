@@ -16,14 +16,25 @@ class NetworkHelperServer {
     private HashMap<String, String> ipByLocation;
     private HashMap<String, String> locationByIp;
     private LinkedList<ServerThread> connections;
+    private ConnectionHandler connectionHandler;
+    private boolean logRequests = true;
+    private boolean logPing = true;
+    private boolean logConnections = true;
+    private boolean logDisconnections = true;
+    private boolean logChanges = true;
     
-    public NetworkHelperServer(String sub, int port) {
-        // set subnet and initialize HashMaps
+    public NetworkHelperServer(String sub, int port, boolean lR, boolean lP, boolean lConn, boolean lD, boolean lCh) {
+        // set subnet, initialize HashMaps and other config
         subnet = sub;
         ips = new TreeSet<String>();
         ipByLocation = new HashMap<String, String>();
         locationByIp = new HashMap<String, String>();
         connections = new LinkedList<ServerThread>();
+        logRequests = lR;
+        logPing = lP;
+        logConnections = lConn;
+        logDisconnections = lD;
+        logChanges = lCh;
         
         try {
             // set ip of the server
@@ -34,7 +45,8 @@ class NetworkHelperServer {
         catch (Exception e) {}
         
         // set new connection handler
-        new ConnectionHandler(port).start();
+        connectionHandler = new ConnectionHandler(port);
+        connectionHandler.start();
     }
 
     // API: check online hosts
@@ -60,7 +72,7 @@ class NetworkHelperServer {
                             // and if it's new
                             if (!ips.contains(host)) {
                                 // log new connection to a network
-                                Logger.logChange(host, true);
+                                logChange(host, true);
                                 // and add it to online hosts list
                                 ips.add(host);
                             }
@@ -70,7 +82,7 @@ class NetworkHelperServer {
                             // if host was online
                             if (ips.contains(host)) {
                                 // log disconnection
-                                Logger.logChange(host, false);
+                                logChange(host, false);
                                 // remove ip from online hosts list
                                 ips.remove(host);
                             }
@@ -169,6 +181,41 @@ class NetworkHelperServer {
         Logger.logRed("Server closed");
     }
 
+    // API: prints server config
+    public void printConfig() {
+        Logger.report("Server config:");
+        Logger.report("Subnet: " + subnet);
+        Logger.report("Port: " + Integer.toString(connectionHandler.getPort()));
+        Logger.report("logRequests: " + Boolean.toString(logRequests));
+        Logger.report("logPing: " + Boolean.toString(logPing));
+        Logger.report("logConnections: " + Boolean.toString(logConnections));
+        Logger.report("logDisconnections: " + Boolean.toString(logDisconnections));
+        Logger.report("logChanges: " + Boolean.toString(logChanges));
+    }
+
+    // API: updates Server config from a config file (except subnet and port)
+    public void updateConfig() {
+        // try to find config file
+        File configFile = new File("serverConfig.properties");
+        try {
+            FileReader reader = new FileReader(configFile);
+            Properties props = new Properties();
+            props.load(reader);
+            reader.close();
+            
+            Logger.logWarning("Found a config file, updating server config...");
+            logRequests = Boolean.parseBoolean(props.getProperty("logRequests"));
+            logPing = Boolean.parseBoolean(props.getProperty("logPing"));
+            logConnections = Boolean.parseBoolean(props.getProperty("logConnections"));
+            logDisconnections = Boolean.parseBoolean(props.getProperty("logDisconnections"));
+            logChanges = Boolean.parseBoolean(props.getProperty("logChanges"));
+            Logger.logSuccess("Config updated");
+        }
+        catch (Exception e) {
+            Logger.logError("Error updating file config");
+        }
+    }
+    
     // ConnectionHandler class
     // handles new connections to the server
     private class ConnectionHandler extends Thread {
@@ -205,6 +252,11 @@ class NetworkHelperServer {
                 connections.add(thread);
             }
         }
+
+        // returns port
+        public int getPort() {
+            return port;
+        }
     }
 
     // ServerThread class
@@ -220,7 +272,6 @@ class NetworkHelperServer {
         }
 
         public void sendUpdateCode() {
-
             try {
                 dout.writeUTF("__SYSTEM__-update");
                 dout.flush();
@@ -240,7 +291,7 @@ class NetworkHelperServer {
                 }
 
                 String ip = getClientIp();
-                Logger.logDisconnection(ip, locationByIp.get(ip));
+                logDisconnection(ip, locationByIp.get(ip));
                 removeIpLocation(ip, locationByIp.get(ip));
 
                 socket.close();
@@ -264,7 +315,7 @@ class NetworkHelperServer {
                 pushIpLocation(ip, location);
 
                 // log new connection
-                Logger.logConnection(ip, locationByIp.get(ip));
+                logConnection(ip, locationByIp.get(ip));
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -283,7 +334,7 @@ class NetworkHelperServer {
                         // 1 - get online hosts
                         if (inp.equals("1")) {
                             request = "1 - 'Get online hosts'";
-                            Logger.logRequestAccepted(getClientIp(), request);
+                            logRequestAccepted(getClientIp(), request);
 
                             TreeSet<String> outIps = getHosts();
                             for (String ip : outIps) {
@@ -308,7 +359,7 @@ class NetworkHelperServer {
                             // ping
                             if (command.equals("ping")) {
                                 request = "SYSTEM - 'ping'";
-                                Logger.logRequestAccepted(getClientIp(), request);
+                                logRequestAccepted(getClientIp(), request);
 
                                 out = "__SYSTEM__-ping";
                             }
@@ -328,7 +379,7 @@ class NetworkHelperServer {
                         dout.flush();
 
                         // log response
-                        Logger.logRequestFinished(getClientIp(), request);
+                        logRequestFinished(getClientIp(), request);
                     }
                 }
                 catch (IOException e) {
@@ -373,7 +424,7 @@ class NetworkHelperServer {
     }
 
     // adds ip and location to HashMaps
-    private void pushIpLocation(String ip, String location) {
+    public void pushIpLocation(String ip, String location) {
         ipByLocation.put(location, ip);
         locationByIp.put(ip, location);
     }
@@ -382,5 +433,56 @@ class NetworkHelperServer {
     private void removeIpLocation(String ip, String location) {
         ipByLocation.remove(ip);
         locationByIp.remove(location);
+    }
+
+    // logs connections to the server if logConnections is true
+    private void logConnection(String ip, String location) {
+        if (logConnections) {
+            Logger.logConnection(ip, location);
+        }
+    }
+
+    // logs disconnections from the server if logDisonnections is true
+    private void logDisconnection(String ip, String location) {
+        if (logDisconnections) {
+            Logger.logDisconnection(ip, location);
+        }
+    }
+
+    // logs requests from Clients if logRequests is true
+    private void logRequestAccepted(String ip, String request) {
+        if (logRequests) {
+            // if request is ping, check if logPing is true
+            if (request.equals("SYSTEM - 'ping'")) {
+                if (logPing) {
+                    Logger.logRequestAccepted(ip, request);
+                }
+            }
+            else {
+                Logger.logRequestAccepted(ip, request);
+            }
+        }
+    }
+
+    // logs requests from Clients if logRequests is true
+    private void logRequestFinished(String ip, String request) {
+        if (logRequests) {
+            // if request is ping, check if logPing is true
+            if (request.equals("SYSTEM - 'ping'")) {
+                if (logPing) {
+                    Logger.logRequestFinished(ip, request);
+                }
+            }
+            else {
+                Logger.logRequestFinished(ip, request);
+            }
+        }
+    }
+
+    // logs network state changes ((dis)connections) if logChanges is true
+    private void logChange(String ip, boolean state) {
+        if (logChanges) {
+            Logger.logChange(ip, state);
+        }
     }
 }

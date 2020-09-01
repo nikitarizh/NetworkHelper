@@ -11,9 +11,14 @@ public class Main {
         // set Input scanner
         Scanner in = new Scanner(System.in);
         
-        // initialize subnet and port
+        // initialize subnet, port and other config
         String subnet = "";
         int port = 0;
+        boolean logRequests = true;
+        boolean logPing = true;
+        boolean logConnections = true;
+        boolean logDisconnections = true;
+        boolean logChanges = true;
 
         // try to find config file
         File configFile = new File("serverConfig.properties");
@@ -32,6 +37,11 @@ public class Main {
                 if (inp == 'y' || inp == 'Y') {
                     subnet = fileSubnet;
                     port = Integer.parseInt(filePort);
+                    logRequests = Boolean.parseBoolean(props.getProperty("logRequests"));
+                    logPing = Boolean.parseBoolean(props.getProperty("logPing"));
+                    logConnections = Boolean.parseBoolean(props.getProperty("logConnections"));
+                    logDisconnections = Boolean.parseBoolean(props.getProperty("logDisconnections"));
+                    logChanges = Boolean.parseBoolean(props.getProperty("logChanges"));
                 }
             }
         }
@@ -65,7 +75,7 @@ public class Main {
         }
 
         // initialize Server
-        final NetworkHelperServer nhs = new NetworkHelperServer(subnet, port);
+        final NetworkHelperServer nhs = new NetworkHelperServer(subnet, port, logRequests, logPing, logConnections, logDisconnections, logChanges);
         
         // initialize InputHandler
         new InputHandler(nhs);

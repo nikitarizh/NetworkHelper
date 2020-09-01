@@ -64,8 +64,16 @@ public class InputHandler {
                             nhs.checkHostByIp(ip, 5000);
                             break;
                         // system requests
+                        //  print Server config
+                        case 900:
+                            nhs.printConfig();
+                            break;
+                        //  update Server config
+                        case 901:
+                            nhs.updateConfig();
+                            break;
                         //  update all clients
-                        case 900: 
+                        case 902: 
                             nhs.updateClients();
                             break;
                         // other - invalid
@@ -89,7 +97,9 @@ public class InputHandler {
         System.out.println("2 - perform immediate scan");
         System.out.println("3 - ping by ip");
         System.out.println("SYSTEM REQUESTS:");
-        System.out.println("900 - update all clients");
+        System.out.println("900 - print server config");
+        System.out.println("901 - update server config");
+        System.out.println("902 - update all clients");
         System.out.println("0 - exit");
         System.out.println("\n----------***----------\n");
     }
