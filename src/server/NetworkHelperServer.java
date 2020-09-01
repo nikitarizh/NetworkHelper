@@ -110,9 +110,9 @@ class NetworkHelperServer {
         return finished;
     }
 
-    // API: check particular host
+    // API: check if host is available (by ip)
     public void checkHostByIp(String ip, int timeout) {
-        Logger.report("Trying to ping " + ip);
+        Logger.logWarning("Trying to ping host " + ip + "...");
         try {
             if (InetAddress.getByName(ip).isReachable(timeout)) {
                 Logger.logSuccess("Host " + ip + " is reachable");
@@ -123,6 +123,29 @@ class NetworkHelperServer {
                 else {
                     Logger.logWarning("Location is unknown");
                 }
+            }
+            else {
+                Logger.logError("Host " + ip + " is NOT reachable");
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // API: check if host is connected and available (by location)
+    public void checkHostByLocation(String location, int timeout) {
+        String ip = ipByLocation.get(location);
+        if (ip == null) {
+            Logger.logError("No hosts are connected from location " + location);
+            return;
+        }
+
+        Logger.logWarning("Hosts " + ip + " is connected from location " + location);
+        Logger.logWarning("Trying to ping host " + ip + "...");
+        try {
+            if (InetAddress.getByName(ip).isReachable(timeout)) {
+                Logger.logSuccess("Host " + ip + " is reachable");
             }
             else {
                 Logger.logError("Host " + ip + " is NOT reachable");

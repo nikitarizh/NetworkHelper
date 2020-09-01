@@ -63,6 +63,11 @@ public class InputHandler {
                             String ip = in.next();
                             nhs.checkHostByIp(ip, 5000);
                             break;
+                        case 4:
+                            Logger.report("Enter location: ");
+                            String location = in.next();
+                            nhs.checkHostByLocation(location, 5000);
+                            break;
                         // system requests
                         //  print Server config
                         case 900:
@@ -96,6 +101,7 @@ public class InputHandler {
         System.out.println("1 - print online hosts");
         System.out.println("2 - perform immediate scan");
         System.out.println("3 - ping by ip");
+        System.out.println("4 - ping by location");
         System.out.println("SYSTEM REQUESTS:");
         System.out.println("900 - print server config");
         System.out.println("901 - update server config");
