@@ -5,6 +5,8 @@ But actually I'm just learning Java by myself, so this thing will be kinda usele
 ## What does it do?
 - Tells you about new connections to your network
 - Tells you about disconnections from your network
+- Provides a client-side and a server-side app
+- Allows you to know locations (rooms, cabinets, etc.) of computers with the client-side app installed
 - ...
 ## What is it built with?
 Java
