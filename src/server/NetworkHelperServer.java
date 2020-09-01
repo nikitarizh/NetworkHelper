@@ -364,10 +364,6 @@ class NetworkHelperServer {
                                 out += ip + '-' + locationByIp.get(ip) + ';';
                             }
                         }
-                        // 2 - initiate immediate scan (?)
-                        else if (inp.equals("2")) {
-                            // TODO: implement immediate scan (?)
-                        }
                         // 0 - close connection
                         else if (inp.equals("0")) {
                             closeConnection(false);
