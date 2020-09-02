@@ -11,7 +11,7 @@ public class Main {
         // set Input scanner
         Scanner in = new Scanner(System.in);
         
-        // initialize subnet, port and other config
+        // initialize subnet, port and other config; set defaults for config
         String subnet = "";
         int port = 0;
         boolean logRequests = true;
