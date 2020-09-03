@@ -10,6 +10,8 @@ But actually I'm just learning Java by myself, so this thing will be kinda usele
 - ...
 ## What is it built with?
 Java
+## Why Java?
+Cross-platform usage (Linux, Windows)
 ## How to use?
 **Make sure you are executing these commands from project root**
 - Server side
