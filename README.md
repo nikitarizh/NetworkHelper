@@ -15,7 +15,7 @@ Cross-platform usage (Linux, Windows)
 ## How to use?
 **Make sure you are executing these commands from project root**
 - Server side
- 1. Compile server classes
+ 1. Compile Server classes
  ```
  javac -d ./bin ./src/server/*.java
  ```
@@ -32,7 +32,7 @@ Cross-platform usage (Linux, Windows)
  java -jar NetworkHelperServer.jar
  ```
 - Client side
- 1. Compile client classes
+ 1. Compile Client classes
  ```
  javac -d ./bin ./src/client/*.java
  ```
