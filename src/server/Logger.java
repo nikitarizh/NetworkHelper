@@ -35,14 +35,17 @@ public class Logger {
         }
     }
 
+    // logs Client connection
     public static void logConnection(String ip, String location) {
         System.out.println(ANSI_BLUE + "\nHost " + ip + " (location: " + location + ") connected" + ANSI_RESET);
     }
 
+    // logs Client disconnection
     public static void logDisconnection(String ip, String location) {
         System.out.println(ANSI_PURPLE + "\nHost " + ip + " (location: " + location + ") disconnected" + ANSI_RESET);
     }
 
+    // logs Client request
     public static void logRequestAccepted(String ip, String request) {
         System.out.println(ANSI_CYAN + "\nHost " + ip + " requested " + request + "(" + getCurrentDate() + ")" + ANSI_RESET);
     }
