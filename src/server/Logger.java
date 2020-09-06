@@ -50,6 +50,7 @@ public class Logger {
         System.out.println(ANSI_CYAN + "\nHost " + ip + " requested " + request + "(" + getCurrentDate() + ")" + ANSI_RESET);
     }
 
+    // logs a message that Client request had been processed
     public static void logRequestFinished(String ip, String request) {
         System.out.println(ANSI_CYAN + "Request " + request + " of host " + ip + " has been processed (" + getCurrentDate() + ")" + ANSI_RESET);
     }
