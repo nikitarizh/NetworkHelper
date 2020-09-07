@@ -55,22 +55,27 @@ public class Logger {
         System.out.println(ANSI_CYAN + "Request " + request + " of host " + ip + " has been processed (" + getCurrentDate() + ")" + ANSI_RESET);
     }
 
+    // logs a message (red)
     public static void logRed(String message) {
         System.out.println(ANSI_RED + "\n" + message + ANSI_RESET);
     }
 
+    // logs a message (yellow)
     public static void logYellow(String message) {
         System.out.println(ANSI_YELLOW + "\n" + message + ANSI_RESET);
     }
 
+    // log a message (green)
     public static void logSuccess(String message) {
         System.out.println(ANSI_GREEN + "\n" + message + ANSI_RESET);
     }
 
+    // log a message (yellow)
     public static void logWarning(String message) {
         System.out.println(ANSI_YELLOW + "\n" + message + ANSI_RESET);
     }
 
+    // log a message (red)
     public static void logError(String message) {
         System.out.println(ANSI_RED + "\n" + message + ANSI_RESET);
     }
